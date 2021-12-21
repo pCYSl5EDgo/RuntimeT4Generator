@@ -1,0 +1,296 @@
+﻿using System.IO;
+using System.Text;
+
+namespace RuntimeT4Generator;
+
+public static class Utility
+{
+    public static (string? Namespace, string? Class, string? Text) SelectT4File(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var ((text, provider), options) = pair;
+        if (!text.Path.EndsWith(".tt"))
+        {
+            return default;
+        }
+
+        var configOptions = provider.GetOptions(text);
+        var isRuntimeT4 = configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator", out _);
+        if (configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator_Namespace", out var @namespace))
+        {
+            isRuntimeT4 = true;
+        }
+        else
+        {
+            @namespace = null;
+        }
+
+        if (string.IsNullOrEmpty(@namespace))
+        {
+            @namespace = options.RootNamespace;
+        }
+
+        if (configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator_Class", out var @class))
+        {
+            isRuntimeT4 = true;
+        }
+        else
+        {
+            @class = null;
+        }
+
+        if (string.IsNullOrEmpty(@class))
+        {
+            @class = Path.GetFileNameWithoutExtension(text.Path);
+        }
+
+        var content = text.GetText()?.ToString();
+
+        return isRuntimeT4 ? (@namespace, @class, content) : default;
+    }
+
+    public static (string HintName, string Code) Generate(string @namespace, string @class, string text, bool isDesignTimeBuild, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var builder = new StringBuilder();
+        var hintName = builder.Append(@namespace).Append(@class).Append(".g.cs").ToString();
+        builder.Clear();
+        if (isDesignTimeBuild)
+        {
+            GenerateDesignTimeBuild(builder, @namespace, @class, token);
+        }
+        else
+        {
+            GenerateFull(builder, @namespace, @class, text, token);
+        };
+
+        var code = builder.ToString();
+        return (hintName, code);
+    }
+
+    private static void GenerateFull(StringBuilder builder, string @namespace, string @class, string text, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var span = text.AsSpan();
+        builder
+            .AppendPreprocess(ref span, token)
+            .Append("namespace ").AppendLine(@namespace)
+            .AppendLine("{")
+            .Append("    public partial class ").AppendLine(@class)
+            .AppendLine("    {")
+            .AppendLine("        public void TransformAppend(global::System.Text.StringBuilder builder, global::System.Threading.CancellationToken token)")
+            .AppendLine("        {")
+            .AppendGenerate(span, token)
+            .AppendLine("        }")
+            .AppendLine("    }")
+            .AppendLine("}")
+            .AppendLine();
+    }
+
+    private static StringBuilder AppendPreprocess(this StringBuilder builder, ref ReadOnlySpan<char> text, CancellationToken token)
+    {
+        ReadOnlySpan<char> specialStart = "<#@".AsSpan();
+        ReadOnlySpan<char> end = "#>".AsSpan();
+
+        while (!text.IsEmpty)
+        {
+            token.ThrowIfCancellationRequested();
+            switch (text[0])
+            {
+                case '\r':
+                    if (text.Length >= 2 && text[1] == '\n')
+                    {
+                        text = text.Slice(2);
+                        if (text.IsEmpty)
+                        {
+                            goto RETURN;
+                        }
+                    }
+                    break;
+                case '\n':
+                    text = text.Slice(1);
+                    if (text.IsEmpty)
+                    {
+                        goto RETURN;
+                    }
+                    break;
+            }
+
+            if (!text.StartsWith(specialStart))
+            {
+                break;
+            }
+
+            text = text.Slice(specialStart.Length);
+            var endIndex = text.IndexOf(end);
+            if (endIndex == -1)
+            {
+                break;
+            }
+
+            if (TryGetUsingNamespace(text.Slice(0, endIndex), out var namespaceSpan))
+            {
+                builder.Append("using ");
+                foreach (var c in namespaceSpan)
+                {
+                    builder.Append(c);
+                }
+
+                builder.AppendLine(";");
+            }
+
+            text = text.Slice(endIndex + end.Length);
+            continue;
+        }
+
+    RETURN:
+        return builder.AppendLine();
+    }
+
+    private static StringBuilder AppendGenerate(this StringBuilder builder, ReadOnlySpan<char> text, CancellationToken token)
+    {
+        ReadOnlySpan<char> end = "#>".AsSpan();
+        ReadOnlySpan<char> assignStart = "<#=".AsSpan();
+        ReadOnlySpan<char> normalStart = "<#".AsSpan();
+        const string indent3 = "            ";
+
+        while (!text.IsEmpty)
+        {
+        HEAD:
+            token.ThrowIfCancellationRequested();
+            switch (text[0])
+            {
+                case '\r':
+                    if (text.Length >= 2 && text[1] == '\n')
+                    {
+                        text = text.Slice(2);
+                        if (text.IsEmpty)
+                        {
+                            goto RETURN;
+                        }
+                    }
+                    break;
+                case '\n':
+                    text = text.Slice(1);
+                    if (text.IsEmpty)
+                    {
+                        goto RETURN;
+                    }
+                    break;
+            }
+
+            if (text.StartsWith(assignStart))
+            {
+                text = text.Slice(assignStart.Length);
+                var endIndex = text.IndexOf(end);
+                if (endIndex == -1)
+                {
+                    break;
+                }
+
+                builder.Append(indent3 + "builder.Append(");
+                foreach (var c in text.Slice(0, endIndex).Trim())
+                {
+                    builder.Append(c);
+                }
+
+                builder.AppendLine(");");
+                text = text.Slice(endIndex + end.Length);
+                continue;
+            }
+            else if (text.StartsWith(normalStart))
+            {
+                text = text.Slice(normalStart.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    var c = text[i];
+                    if (c == '#' && text.Length > i + 1 && text[i + 1] == '>')
+                    {
+                        text = text.Slice(i + 2);
+                        goto HEAD;
+                    }
+
+                    builder.Append(c);
+                }
+
+                break;
+            }
+
+            builder.Append(indent3 + "builder.Append(@\"");
+            for (int i = 0; i < text.Length; i++)
+            {
+                var c = text[i];
+                switch (c)
+                {
+                    case '<':
+                        if (i == 0)
+                        {
+                            builder.Append('<');
+                        }
+                        else
+                        {
+                            builder.AppendLine("\");");
+                            text = text.Slice(i);
+                            goto HEAD;
+                        }
+                        break;
+                    case '"':
+                        builder.Append("\"\"");
+                        break;
+                    default:
+                        builder.Append(c);
+                        break;
+                }
+            }
+
+            builder.AppendLine("\");");
+            break;
+        }
+
+    RETURN:
+        return builder;
+    }
+
+    internal static bool TryGetUsingNamespace(ReadOnlySpan<char> content, out ReadOnlySpan<char> namespaceSpan)
+    {
+        ReadOnlySpan<char> import = "import".AsSpan();
+        ReadOnlySpan<char> namespaceEqualQuotation = "namespace=\"".AsSpan();
+        content = content.Trim();
+        namespaceSpan = content;
+
+        if (!content.StartsWith(import))
+        {
+            return false;
+        }
+
+        content = content.Slice(import.Length);
+        content = content.TrimStart();
+
+        if (!content.StartsWith(namespaceEqualQuotation))
+        {
+            return false;
+        }
+
+        content = content.Slice(namespaceEqualQuotation.Length);
+        namespaceSpan = content.Slice(0, content.IndexOf('"'));
+        return true;
+    }
+
+    private static void GenerateDesignTimeBuild(StringBuilder builder, string @namespace, string @class, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        builder
+            .AppendLine("// DesignTimeBuild")
+            .Append("namespace ").AppendLine(@namespace)
+            .AppendLine("{")
+            .Append("    public partial class ").AppendLine(@class)
+            .AppendLine("    {")
+            .AppendLine("        public void TransformAppend(global::System.Text.StringBuilder builder, global::System.Threading.CancellationToken token)")
+            .AppendLine("        {")
+            .AppendLine("            throw new global::System.NotImplementedException();")
+            .AppendLine("        }")
+            .AppendLine("    }")
+            .AppendLine("}")
+            .AppendLine();
+    }
+}
