@@ -9,12 +9,14 @@ public sealed class Generator : ISourceGenerator
         var isDesignTimeBuild = options.DesignTimeBuild == "true";
         foreach (var file in context.AdditionalFiles)
         {
-            var(@namespace, @class, text) = Utility.SelectT4File(((file, context.AnalyzerConfigOptions), options), context.CancellationToken);
-            if (!string.IsNullOrWhiteSpace(@namespace) && !string.IsNullOrWhiteSpace(@class) && !string.IsNullOrWhiteSpace(text))
+            var info = T4Info.Select(file, context.AnalyzerConfigOptions, options);
+            if (info is null)
             {
-                var (hintName, code) = Utility.Generate(@namespace!, @class!, text!, isDesignTimeBuild, context.CancellationToken);
-                context.AddSource(hintName, code);
+                continue;
             }
+
+            var (hintName, code) = Utility.Generate(info, isDesignTimeBuild, context.CancellationToken);
+            context.AddSource(hintName, code);
         }
     }
 

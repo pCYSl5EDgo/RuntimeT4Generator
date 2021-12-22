@@ -1,86 +1,53 @@
-﻿using System.IO;
-using System.Text;
+﻿using System.Text;
 
 namespace RuntimeT4Generator;
 
 public static class Utility
 {
-    public static (string? Namespace, string? Class, string? Text) SelectT4File(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
+    public static T4Info? SelectT4File(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var ((text, provider), options) = pair;
-        if (!text.Path.EndsWith(".tt"))
+        if (text.Path.EndsWith(".tt"))
         {
-            return default;
+            return T4Info.Select(text, provider, options);
         }
 
-        var configOptions = provider.GetOptions(text);
-        var isRuntimeT4 = configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator", out _);
-        if (configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator_Namespace", out var @namespace))
-        {
-            isRuntimeT4 = true;
-        }
-        else
-        {
-            @namespace = null;
-        }
-
-        if (string.IsNullOrEmpty(@namespace))
-        {
-            @namespace = options.RootNamespace;
-        }
-
-        if (configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator_Class", out var @class))
-        {
-            isRuntimeT4 = true;
-        }
-        else
-        {
-            @class = null;
-        }
-
-        if (string.IsNullOrEmpty(@class))
-        {
-            @class = Path.GetFileNameWithoutExtension(text.Path);
-        }
-
-        var content = text.GetText()?.ToString();
-
-        return isRuntimeT4 ? (@namespace, @class, content) : default;
+        return default;
     }
 
-    public static (string HintName, string Code) Generate(string @namespace, string @class, string text, bool isDesignTimeBuild, CancellationToken token)
+    public static (string HintName, string Code) Generate(T4Info info, bool isDesignTimeBuild, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
-        var hintName = builder.Append(@namespace).Append(@class).Append(".g.cs").ToString();
+        var hintName = builder.Append(info.Namespace).Append('.').Append(info.Class).Append(".g.cs").ToString();
         builder.Clear();
         if (isDesignTimeBuild)
         {
-            GenerateDesignTimeBuild(builder, @namespace, @class, token);
+            GenerateDesignTimeBuild(builder, info, token);
         }
         else
         {
-            GenerateFull(builder, @namespace, @class, text, token);
+            GenerateFull(builder, info, token);
         };
 
         var code = builder.ToString();
         return (hintName, code);
     }
 
-    private static void GenerateFull(StringBuilder builder, string @namespace, string @class, string text, CancellationToken token)
+    private static void GenerateFull(StringBuilder builder, T4Info info, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var span = text.AsSpan();
+        var span = info.Text.AsSpan();
         builder
             .AppendPreprocess(ref span, token)
-            .Append("namespace ").AppendLine(@namespace)
+            .Append("namespace ").AppendLine(info.Namespace)
             .AppendLine("{")
-            .Append("    public partial class ").AppendLine(@class)
+            .Append("    public partial class ").AppendLine(info.Class)
             .AppendLine("    {")
-            .AppendLine("        public void TransformAppend(global::System.Text.StringBuilder builder, global::System.Threading.CancellationToken token)")
+            .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).AppendLine(")")
             .AppendLine("        {")
-            .AppendGenerate(span, token)
+            .AppendGenerate(info, span, token)
             .AppendLine("        }")
             .AppendLine("    }")
             .AppendLine("}")
@@ -147,7 +114,7 @@ public static class Utility
         return builder.AppendLine();
     }
 
-    private static StringBuilder AppendGenerate(this StringBuilder builder, ReadOnlySpan<char> text, CancellationToken token)
+    private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, CancellationToken token)
     {
         ReadOnlySpan<char> end = "#>".AsSpan();
         ReadOnlySpan<char> assignStart = "<#=".AsSpan();
@@ -157,7 +124,6 @@ public static class Utility
         while (!text.IsEmpty)
         {
         HEAD:
-            token.ThrowIfCancellationRequested();
             switch (text[0])
             {
                 case '\r':
@@ -179,6 +145,8 @@ public static class Utility
                     break;
             }
 
+        STEP:
+            token.ThrowIfCancellationRequested();
             if (text.StartsWith(assignStart))
             {
                 text = text.Slice(assignStart.Length);
@@ -188,7 +156,7 @@ public static class Utility
                     break;
                 }
 
-                builder.Append(indent3 + "builder.Append(");
+                builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append('(');
                 foreach (var c in text.Slice(0, endIndex).Trim())
                 {
                     builder.Append(c);
@@ -207,7 +175,7 @@ public static class Utility
                     if (c == '#' && text.Length > i + 1 && text[i + 1] == '>')
                     {
                         text = text.Slice(i + 2);
-                        goto HEAD;
+                        goto STEP;
                     }
 
                     builder.Append(c);
@@ -216,14 +184,14 @@ public static class Utility
                 break;
             }
 
-            builder.Append(indent3 + "builder.Append(@\"");
+            builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append("@\"");
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
                 switch (c)
                 {
                     case '<':
-                        if (i == 0)
+                        if (i + 1 < text.Length && text[i + 1] != '#')
                         {
                             builder.Append('<');
                         }
@@ -276,16 +244,16 @@ public static class Utility
         return true;
     }
 
-    private static void GenerateDesignTimeBuild(StringBuilder builder, string @namespace, string @class, CancellationToken token)
+    private static void GenerateDesignTimeBuild(StringBuilder builder, T4Info info, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         builder
             .AppendLine("// DesignTimeBuild")
-            .Append("namespace ").AppendLine(@namespace)
+            .Append("namespace ").AppendLine(info.Namespace)
             .AppendLine("{")
-            .Append("    public partial class ").AppendLine(@class)
+            .Append("    public partial class ").AppendLine(info.Class)
             .AppendLine("    {")
-            .AppendLine("        public void TransformAppend(global::System.Text.StringBuilder builder, global::System.Threading.CancellationToken token)")
+            .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).AppendLine(")")
             .AppendLine("        {")
             .AppendLine("            throw new global::System.NotImplementedException();")
             .AppendLine("        }")

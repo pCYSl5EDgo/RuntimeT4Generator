@@ -11,17 +11,13 @@ public sealed class Generator : IIncrementalGenerator
             .Combine(context.AnalyzerConfigOptionsProvider)
             .Combine(options)
             .Select(Utility.SelectT4File)
-            .Where(x =>
-            {
-                var (@namespace, @class, text) = x;
-                return !string.IsNullOrWhiteSpace(@namespace) && !string.IsNullOrWhiteSpace(@class) && !string.IsNullOrWhiteSpace(text);
-            })!
-            .WithComparer(EqualityComparer<(string, string, string)>.Default);
+            .Where(x => x is not null)!
+            .WithComparer(EqualityComparer<T4Info>.Default);
 
         context.RegisterSourceOutput(files.Combine(isDesignTimeBuild), static (context, pair) =>
         {
-            var ((@namespace, @class, text), isDesignTimeBuild) = pair;
-            var (hintName, code) = Utility.Generate(@namespace, @class, text, isDesignTimeBuild, context.CancellationToken);
+            var (info, isDesignTimeBuild) = pair;
+            var (hintName, code) = Utility.Generate(info, isDesignTimeBuild, context.CancellationToken);
             context.AddSource(hintName, code);
         });
     }
