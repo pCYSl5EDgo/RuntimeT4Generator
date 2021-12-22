@@ -164,7 +164,7 @@ public static class Utility
 
                 builder.AppendLine(");");
                 text = text.Slice(endIndex + end.Length);
-                continue;
+                goto STEP;
             }
             else if (text.StartsWith(normalStart))
             {
@@ -175,7 +175,7 @@ public static class Utility
                     if (c == '#' && text.Length > i + 1 && text[i + 1] == '>')
                     {
                         text = text.Slice(i + 2);
-                        goto STEP;
+                        goto HEAD;
                     }
 
                     builder.Append(c);
@@ -184,7 +184,7 @@ public static class Utility
                 break;
             }
 
-            builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append("@\"");
+            builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append("(@\"");
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
