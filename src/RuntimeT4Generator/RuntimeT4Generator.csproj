@@ -4,7 +4,7 @@
 		<IsPackable>true</IsPackable>
 		<PackageId>$(RootNamespace)</PackageId>
 		<Title>EmbedResourceCSharp C# Source Generator</Title>
-		<Description>RootNamespace.</Description>
+		<Description>Generate Runtime T4 Template. This removes System.CodeDom dependency.</Description>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<PackageTags>SourceGenerator</PackageTags>
