@@ -9,14 +9,11 @@ public sealed class Generator : ISourceGenerator
         var options = new Options(context.AnalyzerConfigOptions.GlobalOptions);
         foreach (var file in context.AdditionalFiles)
         {
-            var info = T4Info.Select(((file, context.AnalyzerConfigOptions), options), token);
-            if (info is null)
+            foreach (var info in T4Info.Select(((file, context.AnalyzerConfigOptions), options), token))
             {
-                continue;
+                var (hintName, code) = Utility.Generate(info, token);
+                context.AddSource(hintName, code);
             }
-
-            var (hintName, code) = Utility.Generate(info, token);
-            context.AddSource(hintName, code);
         }
     }
 

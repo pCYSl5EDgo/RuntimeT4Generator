@@ -47,6 +47,7 @@ public static class Utility
                 .AppendLine("            builder.Advance(span.Length);")
                 .AppendLine("        }");
         }
+
         builder
             .AppendLine("    }")
             .AppendLine("}")

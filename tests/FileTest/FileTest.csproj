@@ -26,7 +26,7 @@
 	<Import Project="../../src/RuntimeT4Generator/build/RuntimeT4Generator.props" />
 
 	<ItemGroup>
-		<AdditionalFiles Include="FormatterTemplate.tt" RuntimeT4Generator="Utf16" />
+		<AdditionalFiles Include="FormatterTemplate.tt" RuntimeT4Generator="Utf8, Utf16" />
 	</ItemGroup>
 
 </Project>

@@ -9,8 +9,7 @@ public sealed class Generator : IIncrementalGenerator
         var files = context.AdditionalTextsProvider
             .Combine(context.AnalyzerConfigOptionsProvider)
             .Combine(options)
-            .Select(T4Info.Select)
-            .Where(x => x is not null)!
+            .SelectMany(T4Info.Select)
             .WithComparer(EqualityComparer<T4Info>.Default);
 
         context.RegisterSourceOutput(files, static (context, info) =>

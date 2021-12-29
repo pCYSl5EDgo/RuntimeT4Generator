@@ -22,6 +22,8 @@ dotnet add package RuntimeT4Generator
     <AdditionalFiles Include="D.tt" RuntimeT4Generator_ParameterName="buffer" />
     <!-- Default -->
     <AdditionalFiles Include="E.tt" RuntimeT4Generator="" />
+    <!-- Multiple -->
+    <AdditionalFiles Include="E.tt" RuntimeT4Generator="Utf8, Utf16, StringBuilder" />
 </ItemGroup>
 ```
 
