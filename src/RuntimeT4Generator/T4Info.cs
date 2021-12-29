@@ -40,7 +40,6 @@ public partial class T4Info
             value.Class = value.RuntimeT4Generator_Class!;
         }
 
-
         if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_ParameterName))
         {
             value.ParameterName = "builder";
@@ -50,99 +49,28 @@ public partial class T4Info
             value.ParameterName = value.RuntimeT4Generator_ParameterName!;
         }
 
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_ParameterType))
+        switch (value.RuntimeT4Generator)
         {
-            value.ParameterType = value.RuntimeT4Generator switch
-            {
-                null or "" or "StringBuilder" => "global::System.Text.StringBuilder",
-                "Utf16" => "ref global::Cysharp.Text.Utf16ValueStringBuilder",
-                "Utf8" => "ref global::Cysharp.Text.Utf8ValueStringBuilder",
-                _ => null!
-            };
+            case null:
+            case "":
+            case "StringBuilder":
+                value.ParameterType = "global::System.Text.StringBuilder";
+                value.MethodLiteralPrefix = value.ParameterName + ".Append(";
+                break;
+            case "Utf16":
+                value.ParameterType = "ref global::Cysharp.Text.Utf16ValueStringBuilder";
+                value.MethodLiteralPrefix = value.ParameterName + ".Append(";
+                break;
+            case "Utf8":
+                value.ParameterType = "ref global::Cysharp.Text.Utf8ValueStringBuilder";
+                value.MethodLiteralPrefix = "CopyTo(ref " + value.ParameterName + ", ";
+                break;
+            default:
+                return null;
         }
-        else
-        {
-            value.ParameterType = value.RuntimeT4Generator_ParameterType!;
-        }
-
-        if (string.IsNullOrWhiteSpace(value.ParameterType))
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodPrefix))
-        {
-            value.MethodPrefix = value.RuntimeT4Generator switch
-            {
-                null or "" or "StringBuilder" or "Utf16" or "Utf8" => value.ParameterName + ".Append(",
-                _ => null!
-            };
-        }
-        else
-        {
-            value.MethodPrefix = value.RuntimeT4Generator_MethodPrefix!;
-        }
-
-        if (value.MethodPrefix is null)
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodSuffix))
-        {
-            value.MethodSuffix = value.RuntimeT4Generator switch
-            {
-                null or "" or "StringBuilder" or "Utf16" or "Utf8" => ");",
-                _ => null!
-            };
-        }
-        else
-        {
-            value.MethodSuffix = value.RuntimeT4Generator_MethodSuffix!;
-        }
-
-        if (value.MethodSuffix is null)
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodLiteralPrefix))
-        {
-            value.MethodLiteralPrefix = value.RuntimeT4Generator switch
-            {
-                null or "" or "StringBuilder" or "Utf16" => value.ParameterName + ".Append(",
-                "Utf8" => "CopyTo(ref " + value.ParameterName + ", ",
-                _ => null!
-            };
-        }
-        else
-        {
-            value.MethodLiteralPrefix = value.RuntimeT4Generator_MethodLiteralPrefix!;
-        }
-
-        if (value.MethodLiteralPrefix is null)
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodLiteralSuffix))
-        {
-            value.MethodLiteralSuffix = value.RuntimeT4Generator switch
-            {
-                null or "" or "StringBuilder" or "Utf16" or "Utf8" => ");",
-                _ => null!
-            };
-        }
-        else
-        {
-            value.MethodLiteralSuffix = value.RuntimeT4Generator_MethodLiteralSuffix!;
-        }
-
-        if (value.MethodLiteralSuffix is null)
-        {
-            return null;
-        }
-
+        
+        value.MethodPrefix = value.ParameterName + ".Append(";
+        value.MethodLiteralSuffix = value.MethodSuffix = ");";
         return value;
     }
 

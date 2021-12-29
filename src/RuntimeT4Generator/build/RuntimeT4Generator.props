@@ -5,11 +5,6 @@
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Namespace" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Class" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_ParameterType" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_ParameterName" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_MethodLiteralPrefix" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_MethodLiteralSuffix" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_MethodPrefix" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_MethodSuffix" />
 	</ItemGroup>
 </Project>

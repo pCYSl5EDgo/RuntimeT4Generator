@@ -18,8 +18,6 @@ dotnet add package RuntimeT4Generator
     <AdditionalFiles Include="A.tt" RuntimeT4Generator_Namespace="YourOwnNamespace" />
     <!-- Default Class Name is FileNameWithoutExtension -->
     <AdditionalFiles Include="B.tt" RuntimeT4Generator_Class="YourOwnClassName" />
-    <!-- Default String Builder Type is global::System.Text.StringBuilder -->
-    <AdditionalFiles Include="C.tt" RuntimeT4Generator_ParameterType="ref Cysharp.Text.Utf8ValueStringBuilder" />
     <!-- Default Parameter Name is builder -->
     <AdditionalFiles Include="D.tt" RuntimeT4Generator_ParameterName="buffer" />
     <!-- Default -->
@@ -27,4 +25,12 @@ dotnet add package RuntimeT4Generator
 </ItemGroup>
 ```
 
-You can use `RuntimeT4Generator_Namespace`, `RuntimeT4Generator_Class`, `RuntimeT4Generator_ParameterType` and `RuntimeT4Generator_ParameterName` at the same time.
+You can use `RuntimeT4Generator_Namespace`, `RuntimeT4Generator_Class` and `RuntimeT4Generator_ParameterName` at the same time.
+
+This source generator support the 3 types.
+
+|Type|RuntimeT4Generator Value|
+|-|-|
+|System.StringBuilder|"StringBuilder" or ""|
+|ref Cysharp.Text.Utf16ValueStringBuilder|"Utf16"|
+|ref Cysharp.Text.Utf8ValueStringBuilder|"Utf8"|
