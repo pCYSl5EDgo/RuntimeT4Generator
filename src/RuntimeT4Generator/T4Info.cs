@@ -6,6 +6,7 @@ public partial class T4Info
 {
     public static T4Info? Select(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
     {
+        token.ThrowIfCancellationRequested();
         var ((text, provider), options) = pair;
         var path = text.Path;
         if (Path.GetExtension(path) != ".tt")
@@ -136,7 +137,6 @@ public partial class T4Info
         {
             value.MethodLiteralSuffix = value.RuntimeT4Generator_MethodLiteralSuffix!;
         }
-        
 
         if (value.MethodLiteralSuffix is null)
         {
