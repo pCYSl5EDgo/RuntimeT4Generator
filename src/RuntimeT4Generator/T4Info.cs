@@ -55,8 +55,8 @@ public partial class T4Info
             value.ParameterType = value.RuntimeT4Generator switch
             {
                 null or "" or "StringBuilder" => "global::System.Text.StringBuilder",
-                "Utf16" => "ref global::CySharp.Text.Utf16ValueStringBuilder",
-                "Utf8" => "ref global::CySharp.Text.Utf8ValueStringBuilder",
+                "Utf16" => "ref global::Cysharp.Text.Utf16ValueStringBuilder",
+                "Utf8" => "ref global::Cysharp.Text.Utf8ValueStringBuilder",
                 _ => null!
             };
         }

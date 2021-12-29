@@ -40,7 +40,7 @@ public static class Utility
         {
             builder
                 .AppendLine()
-                .AppendLine("        private static void CopyTo(ref global::CySharp.Text.Utf8ValueStringBuilder builder, global::System.ReadOnlySpan<byte> span)")
+                .AppendLine("        private static void CopyTo(ref global::Cysharp.Text.Utf8ValueStringBuilder builder, global::System.ReadOnlySpan<byte> span)")
                 .AppendLine("        {")
                 .AppendLine("            var destination = builder.GetSpan(span.Length);")
                 .AppendLine("            span.CopyTo(destination);")
