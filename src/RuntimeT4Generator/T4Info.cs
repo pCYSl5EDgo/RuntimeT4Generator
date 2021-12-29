@@ -54,6 +54,8 @@ public partial class T4Info
             value.ParameterType = value.RuntimeT4Generator switch
             {
                 null or "" or "StringBuilder" => "global::System.Text.StringBuilder",
+                "Utf16" => "ref global::CySharp.Text.Utf16ValueStringBuilder",
+                "Utf8" => "ref global::CySharp.Text.Utf8ValueStringBuilder",
                 _ => null!
             };
         }
@@ -71,7 +73,7 @@ public partial class T4Info
         {
             value.MethodPrefix = value.RuntimeT4Generator switch
             {
-                null or "" or "StringBuilder" => value.ParameterName + ".Append(",
+                null or "" or "StringBuilder" or "Utf16" or "Utf8" => value.ParameterName + ".Append(",
                 _ => null!
             };
         }
@@ -80,7 +82,7 @@ public partial class T4Info
             value.MethodPrefix = value.RuntimeT4Generator_MethodPrefix!;
         }
 
-        if (string.IsNullOrWhiteSpace(value.MethodPrefix))
+        if (value.MethodPrefix is null)
         {
             return null;
         }
@@ -89,7 +91,7 @@ public partial class T4Info
         {
             value.MethodSuffix = value.RuntimeT4Generator switch
             {
-                null or "" or "StringBuilder" => ");",
+                null or "" or "StringBuilder" or "Utf16" or "Utf8" => ");",
                 _ => null!
             };
         }
@@ -98,7 +100,7 @@ public partial class T4Info
             value.MethodSuffix = value.RuntimeT4Generator_MethodSuffix!;
         }
 
-        if (string.IsNullOrWhiteSpace(value.MethodSuffix))
+        if (value.MethodSuffix is null)
         {
             return null;
         }
@@ -107,7 +109,8 @@ public partial class T4Info
         {
             value.MethodLiteralPrefix = value.RuntimeT4Generator switch
             {
-                null or "" or "StringBuilder" => value.ParameterName + ".Append(",
+                null or "" or "StringBuilder" or "Utf16" => value.ParameterName + ".Append(",
+                "Utf8" => "CopyTo(ref " + value.ParameterName + ", ",
                 _ => null!
             };
         }
@@ -116,7 +119,7 @@ public partial class T4Info
             value.MethodLiteralPrefix = value.RuntimeT4Generator_MethodLiteralPrefix!;
         }
 
-        if (string.IsNullOrWhiteSpace(value.MethodLiteralPrefix))
+        if (value.MethodLiteralPrefix is null)
         {
             return null;
         }
@@ -125,7 +128,7 @@ public partial class T4Info
         {
             value.MethodLiteralSuffix = value.RuntimeT4Generator switch
             {
-                null or "" or "StringBuilder" => ");",
+                null or "" or "StringBuilder" or "Utf16" or "Utf8" => ");",
                 _ => null!
             };
         }
@@ -135,7 +138,7 @@ public partial class T4Info
         }
         
 
-        if (string.IsNullOrWhiteSpace(value.MethodLiteralSuffix))
+        if (value.MethodLiteralSuffix is null)
         {
             return null;
         }

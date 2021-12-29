@@ -9,6 +9,7 @@ public static class Utility
         token.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
         var hintName = builder.Append(info.Namespace).Append('.').Append(info.Class).Append(".g.cs").ToString();
+
         GenerateFull(builder.Clear(), info, token);
         var code = builder.ToString();
         return (hintName, code);
@@ -32,8 +33,21 @@ public static class Utility
             .AppendLine("    {")
             .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).AppendLine(")")
             .AppendLine("        {")
-            .AppendGenerate(info, span, token)
-            .AppendLine("        }")
+            .AppendGenerate(info, span, info.RuntimeT4Generator == "Utf8" ? EmbedLiteralUtf8 : EmbedLiteral, token)
+            .AppendLine("        }");
+
+        if (info.RuntimeT4Generator == "Utf8")
+        {
+            builder
+                .AppendLine()
+                .AppendLine("        private static void CopyTo(ref global::CySharp.Text.Utf8ValueStringBuilder builder, global::System.ReadOnlySpan<byte> span)")
+                .AppendLine("        {")
+                .AppendLine("            var destination = builder.GetSpan(span.Length);")
+                .AppendLine("            span.CopyTo(destination);")
+                .AppendLine("            builder.Advance(span.Length);")
+                .AppendLine("        }");
+        }
+        builder
             .AppendLine("    }")
             .AppendLine("}")
             .AppendLine();
@@ -99,7 +113,7 @@ public static class Utility
         return builder.AppendLine();
     }
 
-    private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, CancellationToken token)
+    private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, Embed embed, CancellationToken token)
     {
         ReadOnlySpan<char> end = "#>".AsSpan();
         ReadOnlySpan<char> assignStart = "<#=".AsSpan();
@@ -170,39 +184,118 @@ public static class Utility
                 break;
             }
 
-            builder.Append(indent3).Append(info.MethodLiteralPrefix).Append("@\"");
-            for (int i = 0; i < text.Length; i++)
+            builder.Append(indent3).Append(info.MethodLiteralPrefix);
+            if (embed(builder, ref text))
             {
-                var c = text[i];
-                switch (c)
-                {
-                    case '<':
-                        if (i + 1 < text.Length && text[i + 1] != '#')
-                        {
-                            builder.Append('<');
-                        }
-                        else
-                        {
-                            builder.Append("\"").AppendLine(info.MethodLiteralSuffix);
-                            text = text.Slice(i);
-                            goto HEAD;
-                        }
-                        break;
-                    case '"':
-                        builder.Append("\"\"");
-                        break;
-                    default:
-                        builder.Append(c);
-                        break;
-                }
+                builder.AppendLine(info.MethodLiteralSuffix);
+                goto HEAD;
             }
 
-            builder.Append('"').AppendLine(info.MethodLiteralSuffix);
+            builder.AppendLine(info.MethodLiteralSuffix);
             break;
         }
 
     RETURN:
         return builder;
+    }
+
+    private static readonly string[] Bytes = new string[256];
+
+    static Utility()
+    {
+        for (int i = 0; i < Bytes.Length; i++)
+        {
+            Bytes[i] = i.ToString("X2");
+        }
+    }
+
+    private delegate bool Embed(StringBuilder builder, ref ReadOnlySpan<char> text);
+
+    private static bool EmbedLiteralUtf8(StringBuilder builder, ref ReadOnlySpan<char> text)
+    {
+        builder.Append("new global::System.ReadOnlySpan<byte>(new byte[] { ");
+        var array = Array.Empty<byte>();
+        var sliceLength = text.Length;
+        for (int i = 1; i < text.Length; i++)
+        {
+            if (text[i] == '#' && text[i - 1] == '<')
+            {
+                sliceLength = i - 1;
+                break;
+            }
+        }
+
+        if (sliceLength > 0)
+        {
+            unsafe
+            {
+                fixed (char* ptr = text.Slice(0, sliceLength))
+                {
+                    var max = Encoding.UTF8.GetMaxByteCount(sliceLength);
+                    if (max > array.Length)
+                    {
+                        array = new byte[max];
+                    }
+
+                    fixed (byte* dest = &array[0])
+                    {
+                        var actual = Encoding.UTF8.GetBytes(ptr, sliceLength, dest, array.Length);
+                        if (actual != 0)
+                        {
+                            builder.Append("0x").Append(Bytes[*dest]);
+                            if (actual != 1)
+                            {
+                                for (byte* itr = dest + 1, end = dest + actual; itr != end; ++itr)
+                                {
+                                    builder.Append(", 0x").Append(Bytes[*itr]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        builder.Append(" })");
+        var answer = text.Length != sliceLength;
+        if (answer)
+        {
+            text = text.Slice(sliceLength);
+        }
+
+        return answer;
+    }
+    private static bool EmbedLiteral(StringBuilder builder, ref ReadOnlySpan<char> text)
+    {
+        builder.Append("@\"");
+        for (int i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
+            switch (c)
+            {
+                case '<':
+                    if (i + 1 < text.Length && text[i + 1] != '#')
+                    {
+                        builder.Append('<');
+                    }
+                    else
+                    {
+                        builder.Append('"');
+                        text = text.Slice(i);
+                        return true;
+                    }
+                    break;
+                case '"':
+                    builder.Append("\"\"");
+                    break;
+                default:
+                    builder.Append(c);
+                    break;
+            }
+        }
+
+        builder.Append('"');
+        return false;
     }
 
     internal static bool TryGetUsingNamespace(ReadOnlySpan<char> content, out ReadOnlySpan<char> namespaceSpan)

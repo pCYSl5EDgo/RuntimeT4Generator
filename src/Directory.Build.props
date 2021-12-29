@@ -4,9 +4,10 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <IsRoslynComponent>true</IsRoslynComponent>
         <LangVersion>10</LangVersion>
-        <Version>0.0.4</Version>
+        <Version>0.0.5</Version>
         <Deterministic>true</Deterministic>
         <Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Authors>pCYSl5EDgo</Authors>
         <Copyright>pCYSl5EDgo</Copyright>
         <RootNamespace>RuntimeT4Generator</RootNamespace>
