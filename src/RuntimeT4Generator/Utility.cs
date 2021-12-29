@@ -4,33 +4,12 @@ namespace RuntimeT4Generator;
 
 public static class Utility
 {
-    public static T4Info? SelectT4File(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
-    {
-        token.ThrowIfCancellationRequested();
-        var ((text, provider), options) = pair;
-        if (text.Path.EndsWith(".tt"))
-        {
-            return T4Info.Select(text, provider, options);
-        }
-
-        return default;
-    }
-
-    public static (string HintName, string Code) Generate(T4Info info, bool isDesignTimeBuild, CancellationToken token)
+    public static (string HintName, string Code) Generate(T4Info info, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
         var hintName = builder.Append(info.Namespace).Append('.').Append(info.Class).Append(".g.cs").ToString();
-        builder.Clear();
-        if (isDesignTimeBuild)
-        {
-            GenerateDesignTimeBuild(builder, info, token);
-        }
-        else
-        {
-            GenerateFull(builder, info, token);
-        };
-
+        GenerateFull(builder.Clear(), info, token);
         var code = builder.ToString();
         return (hintName, code);
     }
@@ -38,7 +17,13 @@ public static class Utility
     private static void GenerateFull(StringBuilder builder, T4Info info, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var span = info.Text.AsSpan();
+        var text = info.Text.GetText(token)?.ToString();
+        if (text is null)
+        {
+            return;
+        }
+
+        var span = text.AsSpan();
         builder
             .AppendPreprocess(ref span, token)
             .Append("namespace ").AppendLine(info.Namespace)
@@ -156,13 +141,13 @@ public static class Utility
                     break;
                 }
 
-                builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append('(');
+                builder.Append(indent3).Append(info.MethodPrefix);
                 foreach (var c in text.Slice(0, endIndex).Trim())
                 {
                     builder.Append(c);
                 }
 
-                builder.AppendLine(");");
+                builder.AppendLine(info.MethodSuffix);
                 text = text.Slice(endIndex + end.Length);
                 goto STEP;
             }
@@ -175,6 +160,7 @@ public static class Utility
                     if (c == '#' && text.Length > i + 1 && text[i + 1] == '>')
                     {
                         text = text.Slice(i + 2);
+                        builder.AppendLine();
                         goto HEAD;
                     }
 
@@ -184,7 +170,7 @@ public static class Utility
                 break;
             }
 
-            builder.Append(indent3).Append(info.ParameterName).Append('.').Append(info.InstanceMethodAsAppend).Append("(@\"");
+            builder.Append(indent3).Append(info.MethodLiteralPrefix).Append("@\"");
             for (int i = 0; i < text.Length; i++)
             {
                 var c = text[i];
@@ -197,7 +183,7 @@ public static class Utility
                         }
                         else
                         {
-                            builder.AppendLine("\");");
+                            builder.Append("\"").AppendLine(info.MethodLiteralSuffix);
                             text = text.Slice(i);
                             goto HEAD;
                         }
@@ -211,7 +197,7 @@ public static class Utility
                 }
             }
 
-            builder.AppendLine("\");");
+            builder.Append('"').AppendLine(info.MethodLiteralSuffix);
             break;
         }
 
@@ -242,23 +228,5 @@ public static class Utility
         content = content.Slice(namespaceEqualQuotation.Length);
         namespaceSpan = content.Slice(0, content.IndexOf('"'));
         return true;
-    }
-
-    private static void GenerateDesignTimeBuild(StringBuilder builder, T4Info info, CancellationToken token)
-    {
-        token.ThrowIfCancellationRequested();
-        builder
-            .AppendLine("// DesignTimeBuild")
-            .Append("namespace ").AppendLine(info.Namespace)
-            .AppendLine("{")
-            .Append("    public partial class ").AppendLine(info.Class)
-            .AppendLine("    {")
-            .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).AppendLine(")")
-            .AppendLine("        {")
-            .AppendLine("            throw new global::System.NotImplementedException();")
-            .AppendLine("        }")
-            .AppendLine("    }")
-            .AppendLine("}")
-            .AppendLine();
     }
 }

@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# IDE0057: 範囲演算子を使用
+csharp_style_prefer_range_operator = false

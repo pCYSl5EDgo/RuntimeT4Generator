@@ -2,126 +2,153 @@
 
 namespace RuntimeT4Generator;
 
-public sealed class T4Info : IEquatable<T4Info>
+public partial class T4Info
 {
-    public readonly string Namespace;
-    public readonly string Class;
-    public readonly string ParameterType;
-    public readonly string ParameterName;
-    public readonly string InstanceMethodAsAppend;
-    public readonly string Text;
-
-    public T4Info(string @namespace, string @class, string parameterType, string parameterName, string instanceMethodAsAppend, string text)
+    public static T4Info? Select(((AdditionalText, AnalyzerConfigOptionsProvider), Options) pair, CancellationToken token)
     {
-        Namespace = @namespace;
-        Class = @class;
-        ParameterType = parameterType;
-        ParameterName = parameterName;
-        InstanceMethodAsAppend = instanceMethodAsAppend;
-        Text = text;
-    }
-
-    public static T4Info? Select(AdditionalText text, AnalyzerConfigOptionsProvider provider, Options options)
-    {
-        var configOptions = provider.GetOptions(text);
-        var isRuntimeT4 = configOptions.TryGetValue("build_metadata.AdditionalFiles.RuntimeT4Generator", out _);
-        const string prefix = "build_metadata.AdditionalFiles.RuntimeT4Generator_";
-        if (configOptions.TryGetValue(prefix + nameof(Namespace), out var @namespace))
-        {
-            isRuntimeT4 = true;
-        }
-        else
-        {
-            @namespace = null;
-        }
-
-        if (string.IsNullOrEmpty(@namespace))
-        {
-            @namespace = options.RootNamespace;
-        }
-
-        if (string.IsNullOrEmpty(@namespace))
+        var ((text, provider), options) = pair;
+        var path = text.Path;
+        if (Path.GetExtension(path) != ".tt")
         {
             return null;
         }
 
-        if (configOptions.TryGetValue(prefix + nameof(Class), out var @class))
+        var value = new T4Info(text, provider.GetOptions(text));
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_Namespace))
         {
-            isRuntimeT4 = true;
+            if (string.IsNullOrWhiteSpace(options.RootNamespace))
+            {
+                value.Namespace = "RuntimeT4Generator";
+            }
+            else
+            {
+                value.Namespace = options.RootNamespace!;
+            }
         }
         else
         {
-            @class = null;
+            value.Namespace = value.RuntimeT4Generator_Namespace!;
         }
 
-        if (string.IsNullOrEmpty(@class))
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_Class))
         {
-            @class = Path.GetFileNameWithoutExtension(text.Path);
-        }
-
-        if (configOptions.TryGetValue(prefix + nameof(ParameterType), out var parameterType))
-        {
-            isRuntimeT4 = true;
+            value.Class = Path.GetFileNameWithoutExtension(path);
         }
         else
         {
-            parameterType = null;
+            value.Class = value.RuntimeT4Generator_Class!;
         }
 
-        if (string.IsNullOrEmpty(parameterType))
-        {
-            parameterType = "global::System.Text.StringBuilder";
-        }
 
-        if (configOptions.TryGetValue(prefix + nameof(ParameterName), out var parameterName))
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_ParameterName))
         {
-            isRuntimeT4 = true;
+            value.ParameterName = "builder";
         }
         else
         {
-            parameterName = null;
+            value.ParameterName = value.RuntimeT4Generator_ParameterName!;
         }
 
-        if (string.IsNullOrEmpty(parameterName))
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_ParameterType))
         {
-            parameterName = "builder";
-        }
-
-        if (configOptions.TryGetValue(prefix + nameof(InstanceMethodAsAppend), out var instanceMethodAsAppend))
-        {
-            isRuntimeT4 = true;
+            value.ParameterType = value.RuntimeT4Generator switch
+            {
+                null or "" or "StringBuilder" => "global::System.Text.StringBuilder",
+                _ => null!
+            };
         }
         else
         {
-            instanceMethodAsAppend = null;
+            value.ParameterType = value.RuntimeT4Generator_ParameterType!;
         }
 
-        if (string.IsNullOrEmpty(instanceMethodAsAppend))
-        {
-            instanceMethodAsAppend = "Append";
-        }
-
-        if (!isRuntimeT4)
+        if (string.IsNullOrWhiteSpace(value.ParameterType))
         {
             return null;
         }
 
-        var code = text.GetText()?.ToString();
-        if (string.IsNullOrEmpty(code))
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodPrefix))
+        {
+            value.MethodPrefix = value.RuntimeT4Generator switch
+            {
+                null or "" or "StringBuilder" => value.ParameterName + ".Append(",
+                _ => null!
+            };
+        }
+        else
+        {
+            value.MethodPrefix = value.RuntimeT4Generator_MethodPrefix!;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.MethodPrefix))
         {
             return null;
         }
 
-        return new(@namespace!, @class!, parameterType!, parameterName!, instanceMethodAsAppend!, code!);
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodSuffix))
+        {
+            value.MethodSuffix = value.RuntimeT4Generator switch
+            {
+                null or "" or "StringBuilder" => ");",
+                _ => null!
+            };
+        }
+        else
+        {
+            value.MethodSuffix = value.RuntimeT4Generator_MethodSuffix!;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.MethodSuffix))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodLiteralPrefix))
+        {
+            value.MethodLiteralPrefix = value.RuntimeT4Generator switch
+            {
+                null or "" or "StringBuilder" => value.ParameterName + ".Append(",
+                _ => null!
+            };
+        }
+        else
+        {
+            value.MethodLiteralPrefix = value.RuntimeT4Generator_MethodLiteralPrefix!;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.MethodLiteralPrefix))
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_MethodLiteralSuffix))
+        {
+            value.MethodLiteralSuffix = value.RuntimeT4Generator switch
+            {
+                null or "" or "StringBuilder" => ");",
+                _ => null!
+            };
+        }
+        else
+        {
+            value.MethodLiteralSuffix = value.RuntimeT4Generator_MethodLiteralSuffix!;
+        }
+        
+
+        if (string.IsNullOrWhiteSpace(value.MethodLiteralSuffix))
+        {
+            return null;
+        }
+
+        return value;
     }
 
-    public bool Equals(T4Info other)
-    {
-        return Namespace == other.Namespace
-            && Class == other.Class
-            && ParameterType == other.ParameterType
-            && ParameterName == other.ParameterName
-            && InstanceMethodAsAppend == other.InstanceMethodAsAppend
-            && Text == other.Text;
-    }
+    public string Namespace;
+    public string Class;
+    public string ParameterType;
+    public string ParameterName;
+    public string MethodPrefix;
+    public string MethodSuffix;
+    public string MethodLiteralPrefix;
+    public string MethodLiteralSuffix;
 }

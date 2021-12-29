@@ -5,17 +5,17 @@ public sealed class Generator : ISourceGenerator
 {
     public void Execute(GeneratorExecutionContext context)
     {
+        var token = context.CancellationToken;
         var options = new Options(context.AnalyzerConfigOptions.GlobalOptions);
-        var isDesignTimeBuild = options.DesignTimeBuild == "true";
         foreach (var file in context.AdditionalFiles)
         {
-            var info = T4Info.Select(file, context.AnalyzerConfigOptions, options);
+            var info = T4Info.Select(((file, context.AnalyzerConfigOptions), options), token);
             if (info is null)
             {
                 continue;
             }
 
-            var (hintName, code) = Utility.Generate(info, isDesignTimeBuild, context.CancellationToken);
+            var (hintName, code) = Utility.Generate(info, token);
             context.AddSource(hintName, code);
         }
     }
