@@ -53,6 +53,8 @@ public partial class T4Info
         {
             case null:
             case "":
+                value.RuntimeT4Generator = "StringBuilder";
+                goto case "StringBuilder";
             case "StringBuilder":
                 value.ParameterType = "global::System.Text.StringBuilder";
                 value.MethodLiteralPrefix = value.ParameterName + ".Append(";

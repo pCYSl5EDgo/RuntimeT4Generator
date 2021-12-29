@@ -8,7 +8,7 @@ public static class Utility
     {
         token.ThrowIfCancellationRequested();
         var builder = new StringBuilder();
-        var hintName = builder.Append(info.Namespace).Append('.').Append(info.Class).Append(".g.cs").ToString();
+        var hintName = builder.Append(info.Namespace).Append('.').Append(info.Class).Append('.').Append(info.RuntimeT4Generator).Append(".g.cs").ToString();
 
         GenerateFull(builder.Clear(), info, token);
         var code = builder.ToString();
