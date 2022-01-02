@@ -12,7 +12,10 @@ public sealed class Generator : ISourceGenerator
             foreach (var info in T4Info.Select(((file, context.AnalyzerConfigOptions), options), token))
             {
                 var (hintName, code) = Utility.Generate(info, token);
-                context.AddSource(hintName, code);
+                if (!string.IsNullOrEmpty(hintName))
+                {
+                    context.AddSource(hintName, code);
+                }
             }
         }
     }

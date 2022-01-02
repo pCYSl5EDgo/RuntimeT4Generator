@@ -6,5 +6,6 @@
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Namespace" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Class" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_ParameterName" />
+		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_SupportsIndent" />
 	</ItemGroup>
 </Project>

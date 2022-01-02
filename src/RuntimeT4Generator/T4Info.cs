@@ -81,6 +81,10 @@ public partial class T4Info
             {
                 list.Add(value.Clone("Utf8"));
             }
+            else if (split.SequenceEqual("DefaultInterpolatedStringHandler".AsSpan()))
+            {
+                list.Add(value.Clone("DefaultInterpolatedStringHandler"));
+            }
         }
 
         if (list.Count > 0)
@@ -93,20 +97,17 @@ public partial class T4Info
 
     public T4Info Clone(string runtimeT4Generator)
     {
-        switch (runtimeT4Generator)
+        return runtimeT4Generator switch
         {
-            case "StringBuilder":
-                return new(runtimeT4Generator, Namespace, Class, "global::System.Text.StringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, Text);
-            case "Utf16":
-                return new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf16ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, Text);
-            case "Utf8":
-                return new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf8ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, "CopyTo(ref " + ParameterName + ", ", MethodLiteralSuffix, Text);
-            default:
-                throw new ArgumentException(runtimeT4Generator);
-        }
+            "StringBuilder" => new(runtimeT4Generator, Namespace, Class, "global::System.Text.StringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
+            "Utf16" => new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf16ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
+            "Utf8" => new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf8ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, "CopyTo(ref " + ParameterName + ", ", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
+            "DefaultInterpolatedStringHandler" => new(runtimeT4Generator, Namespace, Class, "ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", ParameterName, ParameterName + ".AppendFormatted(", ParameterName + ".AppendLiteral(global::System.Environment.NewLine);", ParameterName + ".AppendFormatted(", MethodLiteralSuffix, MethodCrLf, Text, RuntimeT4Generator_SupportsIndent),
+            _ => throw new ArgumentException(runtimeT4Generator),
+        };
     }
 
-    private T4Info(string runtimeT4Generator, string @namespace, string @class, string parameterType, string parameterName, string methodPrefix, string methodSuffix, string methodLiteralPrefix, string methodLiteralSuffix, AdditionalText text)
+    private T4Info(string runtimeT4Generator, string @namespace, string @class, string parameterType, string parameterName, string methodPrefix, string methodSuffix, string methodLiteralPrefix, string methodLiteralSuffix, string methodCrLf, AdditionalText text, string? supportsIndent)
     {
         RuntimeT4Generator = runtimeT4Generator;
         Namespace = @namespace;
@@ -117,7 +118,9 @@ public partial class T4Info
         MethodSuffix = methodSuffix;
         MethodLiteralPrefix = methodLiteralPrefix;
         MethodLiteralSuffix = methodLiteralSuffix;
+        MethodCrLf = methodCrLf;
         Text = text;
+        RuntimeT4Generator_SupportsIndent = supportsIndent;
     }
 
     public string Namespace;
@@ -128,4 +131,5 @@ public partial class T4Info
     public string MethodSuffix;
     public string MethodLiteralPrefix;
     public string MethodLiteralSuffix;
+    public string MethodCrLf;
 }

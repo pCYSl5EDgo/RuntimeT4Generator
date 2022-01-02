@@ -15,7 +15,10 @@ public sealed class Generator : IIncrementalGenerator
         context.RegisterSourceOutput(files, static (context, info) =>
         {
             var (hintName, code) = Utility.Generate(info, context.CancellationToken);
-            context.AddSource(hintName, code);
+            if (!string.IsNullOrEmpty(hintName))
+            {
+                context.AddSource(hintName, code);
+            }
         });
     }
 
