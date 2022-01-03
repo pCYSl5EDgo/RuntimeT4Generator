@@ -4,8 +4,9 @@
 		<CompilerVisibleProperty Include="RootNamespace" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Namespace" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Class" />
+		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_Modifier" />
+		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_TypeName" />
 		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_ParameterName" />
-		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_SupportsIndent" />
+		<CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="RuntimeT4Generator_IndentParameterName" />
 	</ItemGroup>
 </Project>

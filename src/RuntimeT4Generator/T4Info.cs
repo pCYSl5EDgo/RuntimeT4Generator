@@ -31,13 +31,22 @@ public partial class T4Info
             value.Namespace = value.RuntimeT4Generator_Namespace!;
         }
 
-        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_Class))
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_Modifier))
         {
-            value.Class = Path.GetFileNameWithoutExtension(path);
+            value.Modifier = "public partial class";
         }
         else
         {
-            value.Class = value.RuntimeT4Generator_Class!;
+            value.Modifier = value.RuntimeT4Generator_Modifier!;
+        }
+
+        if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_TypeName))
+        {
+            value.TypeName = Path.GetFileNameWithoutExtension(path);
+        }
+        else
+        {
+            value.TypeName = value.RuntimeT4Generator_TypeName!;
         }
 
         if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_ParameterName))
@@ -99,19 +108,20 @@ public partial class T4Info
     {
         return runtimeT4Generator switch
         {
-            "StringBuilder" => new(runtimeT4Generator, Namespace, Class, "global::System.Text.StringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
-            "Utf16" => new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf16ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
-            "Utf8" => new(runtimeT4Generator, Namespace, Class, "ref global::Cysharp.Text.Utf8ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, "CopyTo(ref " + ParameterName + ", ", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_SupportsIndent),
-            "DefaultInterpolatedStringHandler" => new(runtimeT4Generator, Namespace, Class, "ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", ParameterName, ParameterName + ".AppendFormatted(", ParameterName + ".AppendLiteral(global::System.Environment.NewLine);", ParameterName + ".AppendFormatted(", MethodLiteralSuffix, MethodCrLf, Text, RuntimeT4Generator_SupportsIndent),
+            "StringBuilder" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "global::System.Text.StringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
+            "Utf16" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::Cysharp.Text.Utf16ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
+            "Utf8" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::Cysharp.Text.Utf8ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, "CopyTo(ref " + ParameterName + ", ", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
+            "DefaultInterpolatedStringHandler" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", ParameterName, ParameterName + ".AppendFormatted(", ParameterName + ".AppendLiteral(global::System.Environment.NewLine);", ParameterName + ".AppendFormatted(", MethodLiteralSuffix, MethodCrLf, Text, RuntimeT4Generator_IndentParameterName),
             _ => throw new ArgumentException(runtimeT4Generator),
         };
     }
 
-    private T4Info(string runtimeT4Generator, string @namespace, string @class, string parameterType, string parameterName, string methodPrefix, string methodSuffix, string methodLiteralPrefix, string methodLiteralSuffix, string methodCrLf, AdditionalText text, string? supportsIndent)
+    private T4Info(string runtimeT4Generator, string @namespace, string modifier, string typeName, string parameterType, string parameterName, string methodPrefix, string methodSuffix, string methodLiteralPrefix, string methodLiteralSuffix, string methodCrLf, AdditionalText text, string? indentParameterName)
     {
         RuntimeT4Generator = runtimeT4Generator;
         Namespace = @namespace;
-        Class = @class;
+        Modifier = modifier;
+        TypeName = typeName;
         ParameterType = parameterType;
         ParameterName = parameterName;
         MethodPrefix = methodPrefix;
@@ -120,11 +130,12 @@ public partial class T4Info
         MethodLiteralSuffix = methodLiteralSuffix;
         MethodCrLf = methodCrLf;
         Text = text;
-        RuntimeT4Generator_SupportsIndent = supportsIndent;
+        RuntimeT4Generator_IndentParameterName = indentParameterName;
     }
 
     public string Namespace;
-    public string Class;
+    public string Modifier;
+    public string TypeName;
     public string ParameterType;
     public string ParameterName;
     public string MethodPrefix;

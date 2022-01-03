@@ -16,10 +16,10 @@ public static class Utility
         }
 
         GenerateFull(builder, info, text, token);
-        if (!string.IsNullOrWhiteSpace(info.RuntimeT4Generator_SupportsIndent))
+        if (!string.IsNullOrWhiteSpace(info.RuntimeT4Generator_IndentParameterName))
         {
             builder.AppendLine();
-            GenerateIndent(builder, info, text, info.RuntimeT4Generator_SupportsIndent!, token);
+            GenerateIndent(builder, info, text, info.RuntimeT4Generator_IndentParameterName!, token);
         }
 
         builder
@@ -27,7 +27,7 @@ public static class Utility
             .AppendLine("}")
             .AppendLine();
         var code = builder.ToString();
-        var hintName = builder.Clear().Append(info.Namespace).Append('.').Append(info.Class).Append('.').Append(info.RuntimeT4Generator).Append(".g.cs").ToString();
+        var hintName = builder.Clear().Append(info.Namespace).Append('.').Append(info.TypeName).Append('.').Append(info.RuntimeT4Generator).Append(".g.cs").ToString();
         return (hintName, code);
     }
 
@@ -46,7 +46,10 @@ public static class Utility
             .AppendPreprocess(ref span, token)
             .Append("namespace ").AppendLine(info.Namespace)
             .AppendLine("{")
-            .Append("    public partial class ").AppendLine(info.Class)
+            .Append("    ");
+        builder
+            .Append(info.Modifier)
+            .Append(' ').AppendLine(info.TypeName)
             .AppendLine("    {");
         return true;
     }
