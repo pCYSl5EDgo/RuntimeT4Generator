@@ -79,23 +79,27 @@ public static class Utility
     {
         token.ThrowIfCancellationRequested();
         builder
-            .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).Append(", uint ").Append(indentParameterName).AppendLine(")")
+            .Append("        public void TransformAppend(").Append(info.ParameterType).Append(' ').Append(info.ParameterName).Append(", int ").Append(indentParameterName).AppendLine(")")
             .AppendLine("        {");
 
         if (info.RuntimeT4Generator == "Utf8")
         {
-            builder.Append(indent3 + "global::System.Span<byte> ____").Append(indentParameterName).Append("____ = stackalloc byte[(int)").Append(indentParameterName).Append("];").AppendLine();
+            builder.Append(indent3 + "global::System.Span<byte> ____").Append(indentParameterName).Append("____ = stackalloc byte[").Append(indentParameterName).Append("];").AppendLine();
             builder.Append(indent3 + "____").Append(indentParameterName).Append(@"____.Fill((byte)' ');").AppendLine();
             builder.AppendLine();
 
             builder.AppendGenerate(info, span, indentParameterName, EmbedLiteralUtf8, token);
         }
-        else
+        else if (info.RuntimeT4Generator != "StringBuilder")
         {
-            builder.Append(indent3 + "global::System.Span<char> ____").Append(indentParameterName).Append("____ = stackalloc char[(int)").Append(indentParameterName).Append("];").AppendLine();
+            builder.Append(indent3 + "global::System.Span<char> ____").Append(indentParameterName).Append("____ = stackalloc char[").Append(indentParameterName).Append("];").AppendLine();
             builder.Append(indent3 + "____").Append(indentParameterName).Append(@"____.Fill(' ');").AppendLine();
             builder.AppendLine();
 
+            builder.AppendGenerate(info, span, indentParameterName, EmbedLiteral, token);
+        }
+        else
+        {
             builder.AppendGenerate(info, span, indentParameterName, EmbedLiteral, token);
         }
 
@@ -294,11 +298,21 @@ public static class Utility
         static void PreIndent(StringBuilder builder, T4Info info, string indentParameterName)
         {
             builder.Append(indent3);
-            builder.Append(info.MethodLiteralPrefix);
-            builder.Append("____");
-            builder.Append(indentParameterName);
-            builder.Append("____");
-            builder.AppendLine(info.MethodLiteralSuffix);
+            if (info.RuntimeT4Generator == "StringBuilder")
+            {
+                builder.Append(info.ParameterName);
+                builder.Append(".Append(' ', ");
+                builder.Append(indentParameterName);
+                builder.AppendLine(");");
+            }
+            else
+            {
+                builder.Append(info.MethodLiteralPrefix);
+                builder.Append("____");
+                builder.Append(indentParameterName);
+                builder.Append("____");
+                builder.AppendLine(info.MethodLiteralSuffix);
+            }
         }
 
         static void Pre(StringBuilder builder, T4Info info, string indentParameterName)
