@@ -337,7 +337,7 @@ public static class Utility
             builder.Append(indent3);
             if (info.RuntimeT4Generator == "StringBuilder")
             {
-                builder.Append(("if (")
+                builder.Append(("if (");
                 builder.Append(indentParameterName);
                 builder.Append(" != 0) ");
                 builder.Append(info.ParameterName);
@@ -347,7 +347,7 @@ public static class Utility
             }
             else
             {
-                builder.Append(("if (")
+                builder.Append(("if (");
                 builder.Append(indentParameterName);
                 builder.Append(" != 0) ");
                 builder.Append(info.MethodLiteralPrefix);
