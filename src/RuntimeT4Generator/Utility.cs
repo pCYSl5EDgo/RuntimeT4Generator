@@ -217,7 +217,7 @@ public static class Utility
                 case '<' when 1 < text.Length && text[1] == '#':
                     if (2 < text.Length && text[2] == '=')
                     {
-                        if (isFirst)
+                        if (isFirst && indentParameterName is not null)
                         {
                             PreIndent(builder, info, indentParameterName);
                             isFirst = false;
@@ -241,10 +241,12 @@ public static class Utility
                             {
                                 if (isFirst)
                                 {
-                                    Pre(builder, info, indentParameterName);
+                                    PreIndent(builder, info, indentParameterName);
                                     isFirst = false;
                                 }
 
+                                builder.Append(indent3);
+                                builder.Append(info.MethodLiteralPrefix);
                                 embed(builder, text.Slice(0, index));
                                 builder.AppendLine(info.MethodLiteralSuffix);
                             }
@@ -261,10 +263,12 @@ public static class Utility
                                 {
                                     if (isFirst)
                                     {
-                                        Pre(builder, info, indentParameterName);
+                                        PreIndent(builder, info, indentParameterName);
                                         isFirst = false;
                                     }
 
+                                    builder.Append(indent3);
+                                    builder.Append(info.MethodLiteralPrefix);
                                     embed(builder, text.Slice(0, anotherIndex));
                                     builder.AppendLine(info.MethodLiteralSuffix);
                                 }
@@ -279,10 +283,12 @@ public static class Utility
                                 {
                                     if (isFirst)
                                     {
-                                        Pre(builder, info, indentParameterName);
+                                        PreIndent(builder, info, indentParameterName);
                                         isFirst = false;
                                     }
 
+                                    builder.Append(indent3);
+                                    builder.Append(info.MethodLiteralPrefix);
                                     embed(builder, text.Slice(0, anotherIndex));
                                     builder.AppendLine(info.MethodLiteralSuffix);
                                 }
@@ -337,14 +343,6 @@ public static class Utility
                 builder.Append("____");
                 builder.AppendLine(info.MethodLiteralSuffix);
             }
-        }
-
-        static void Pre(StringBuilder builder, T4Info info, string indentParameterName)
-        {
-            PreIndent(builder, info, indentParameterName);
-
-            builder.Append(indent3);
-            builder.Append(info.MethodLiteralPrefix);
         }
     }
 
