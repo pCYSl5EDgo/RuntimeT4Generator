@@ -303,7 +303,11 @@ public static class Utility
                             break;
                         }
 
-                        PreIndent(builder, info, indentParameterName);
+                        if (shouldIndent)
+                        {
+                            PreIndent(builder, info, indentParameterName);
+                            shouldIndent = false;
+                        }
                     }
 
                     builder.Append(indent3);
