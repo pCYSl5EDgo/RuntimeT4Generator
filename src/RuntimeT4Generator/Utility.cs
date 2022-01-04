@@ -208,7 +208,7 @@ public static class Utility
 
     private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, string? indentParameterName, Embed embed, CancellationToken token)
     {
-        bool isFirst = true;
+        bool shouldIndent = false;
         token.ThrowIfCancellationRequested();
         while (!text.IsEmpty)
         {
@@ -217,10 +217,10 @@ public static class Utility
                 case '<' when 1 < text.Length && text[1] == '#':
                     if (2 < text.Length && text[2] == '=')
                     {
-                        if (isFirst && indentParameterName is not null)
+                        if (shouldIndent && indentParameterName is not null)
                         {
                             PreIndent(builder, info, indentParameterName);
-                            isFirst = false;
+                            shouldIndent = false;
                         }
 
                         text = builder.AppendValue(info, text.Slice(3).TrimStart(), token);
@@ -239,10 +239,10 @@ public static class Utility
                         {
                             if (index != 0)
                             {
-                                if (isFirst)
+                                if (shouldIndent)
                                 {
                                     PreIndent(builder, info, indentParameterName);
-                                    isFirst = false;
+                                    shouldIndent = false;
                                 }
 
                                 builder.Append(indent3);
@@ -261,10 +261,10 @@ public static class Utility
                             {
                                 if (anotherIndex != 0)
                                 {
-                                    if (isFirst)
+                                    if (shouldIndent)
                                     {
                                         PreIndent(builder, info, indentParameterName);
-                                        isFirst = false;
+                                        shouldIndent = false;
                                     }
 
                                     builder.Append(indent3);
@@ -276,15 +276,16 @@ public static class Utility
                                 builder.Append(indent3);
                                 builder.AppendLine(info.MethodCrLf);
                                 text = text.Slice(anotherIndex + 2);
+                                shouldIndent = true;
                             }
                             else if (text[anotherIndex] == '\n')
                             {
                                 if (anotherIndex != 0)
                                 {
-                                    if (isFirst)
+                                    if (shouldIndent)
                                     {
                                         PreIndent(builder, info, indentParameterName);
-                                        isFirst = false;
+                                        shouldIndent = false;
                                     }
 
                                     builder.Append(indent3);
@@ -296,6 +297,7 @@ public static class Utility
                                 builder.Append(indent3);
                                 builder.AppendLine(info.MethodCrLf);
                                 text = text.Slice(anotherIndex + 1);
+                                shouldIndent = true;
                             }
 
                             break;
