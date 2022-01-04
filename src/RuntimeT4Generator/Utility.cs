@@ -208,7 +208,7 @@ public static class Utility
 
     private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, string? indentParameterName, Embed embed, CancellationToken token)
     {
-        bool shouldIndent = false;
+        bool shouldIndent = true;
         token.ThrowIfCancellationRequested();
         while (!text.IsEmpty)
         {
