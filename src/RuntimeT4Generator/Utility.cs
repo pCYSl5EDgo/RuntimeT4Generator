@@ -208,6 +208,7 @@ public static class Utility
 
     private static StringBuilder AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, string? indentParameterName, Embed embed, CancellationToken token)
     {
+        bool isFirst = true;
         token.ThrowIfCancellationRequested();
         while (!text.IsEmpty)
         {
@@ -216,6 +217,12 @@ public static class Utility
                 case '<' when 1 < text.Length && text[1] == '#':
                     if (2 < text.Length && text[2] == '=')
                     {
+                        if (isFirst)
+                        {
+                            PreIndent(builder, info, indentParameterName);
+                            isFirst = false;
+                        }
+
                         text = builder.AppendValue(info, text.Slice(3).TrimStart(), token);
                     }
                     else
@@ -232,7 +239,12 @@ public static class Utility
                         {
                             if (index != 0)
                             {
-                                Pre(builder, info, indentParameterName);
+                                if (isFirst)
+                                {
+                                    Pre(builder, info, indentParameterName);
+                                    isFirst = false;
+                                }
+
                                 embed(builder, text.Slice(0, index));
                                 builder.AppendLine(info.MethodLiteralSuffix);
                             }
@@ -247,7 +259,12 @@ public static class Utility
                             {
                                 if (anotherIndex != 0)
                                 {
-                                    Pre(builder, info, indentParameterName);
+                                    if (isFirst)
+                                    {
+                                        Pre(builder, info, indentParameterName);
+                                        isFirst = false;
+                                    }
+
                                     embed(builder, text.Slice(0, anotherIndex));
                                     builder.AppendLine(info.MethodLiteralSuffix);
                                 }
@@ -260,7 +277,12 @@ public static class Utility
                             {
                                 if (anotherIndex != 0)
                                 {
-                                    Pre(builder, info, indentParameterName);
+                                    if (isFirst)
+                                    {
+                                        Pre(builder, info, indentParameterName);
+                                        isFirst = false;
+                                    }
+
                                     embed(builder, text.Slice(0, anotherIndex));
                                     builder.AppendLine(info.MethodLiteralSuffix);
                                 }
