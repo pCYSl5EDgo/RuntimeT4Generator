@@ -321,6 +321,7 @@ public static class Utility
                     }
 
                     builder.AppendLine(info.MethodLiteralSuffix);
+                    shouldIndent = false;
                     break;
             }
         }
