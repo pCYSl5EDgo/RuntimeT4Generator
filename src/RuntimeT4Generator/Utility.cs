@@ -15,11 +15,25 @@ public static class Utility
             return default;
         }
 
-        GenerateFull(builder, info, text, token);
-        if (!string.IsNullOrWhiteSpace(info.RuntimeT4Generator_IndentParameterName))
+        if (string.IsNullOrWhiteSpace(info.RuntimeT4Generator_IndentParameterName))
         {
-            builder.AppendLine();
+            GenerateFull(builder, info, text, token);
+        }
+        else
+        {
             GenerateIndent(builder, info, text, info.RuntimeT4Generator_IndentParameterName!, token);
+        }
+
+        if (info.RuntimeT4Generator == "Utf8")
+        {
+            builder
+                .AppendLine()
+                .AppendLine("        private static void CopyTo(ref global::Cysharp.Text.Utf8ValueStringBuilder builder, global::System.ReadOnlySpan<byte> span)")
+                .AppendLine("        {")
+                .AppendLine(indent3 + "var destination = builder.GetSpan(span.Length);")
+                .AppendLine(indent3 + "span.CopyTo(destination);")
+                .AppendLine(indent3 + "builder.Advance(span.Length);")
+                .AppendLine("        }");
         }
 
         builder
@@ -61,18 +75,6 @@ public static class Utility
             .AppendLine("        {")
             .AppendGenerate(info, span, null, info.RuntimeT4Generator == "Utf8" ? EmbedLiteralUtf8 : EmbedLiteral, token)
             .AppendLine("        }");
-
-        if (info.RuntimeT4Generator == "Utf8")
-        {
-            builder
-                .AppendLine()
-                .AppendLine("        private static void CopyTo(ref global::Cysharp.Text.Utf8ValueStringBuilder builder, global::System.ReadOnlySpan<byte> span)")
-                .AppendLine("        {")
-                .AppendLine(indent3 + "var destination = builder.GetSpan(span.Length);")
-                .AppendLine(indent3 + "span.CopyTo(destination);")
-                .AppendLine(indent3 + "builder.Advance(span.Length);")
-                .AppendLine("        }");
-        }
     }
 
     private static void GenerateIndent(StringBuilder builder, T4Info info, ReadOnlySpan<char> span, string indentParameterName, CancellationToken token)
