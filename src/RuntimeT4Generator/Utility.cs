@@ -22,11 +22,11 @@ public static partial class Utility
             builder.AppendLine("        {");
             if (info.RuntimeT4Generator == "Utf8")
             {
-                builder.AppendGenerate(info, text, null, EmbedLiteralUtf8, token);
+                builder.AppendGenerate(info, text, EmbedLiteralUtf8, token);
             }
             else
             {
-                builder.AppendGenerate(info, text, null, EmbedLiteral, token);
+                builder.AppendGenerate(info, text, EmbedLiteral, token);
             }
 
             builder.AppendLine("        }");
@@ -205,7 +205,44 @@ public static partial class Utility
         return text.Slice(endIndex + 2);
     }
 
-    private static void AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, string? indentParameterName, Embed embed, CancellationToken token)
+    private static void AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, Embed embed, CancellationToken token)
+    {
+        while (!text.IsEmpty)
+        {
+            token.ThrowIfCancellationRequested();
+            var codeIndex = text.IndexOf("<#".AsSpan(), StringComparison.Ordinal);
+            if (codeIndex == 0)
+            {
+                if (text.Length > 2 && text[2] == '=')
+                {
+                    text = builder.AppendValue(info, text.Slice(3).TrimStart(), token);
+                }
+                else
+                {
+                    bool _ = false;
+                    text = builder.AppendCode(text.Slice(2), ref _, token);
+                }
+            }
+            else if (codeIndex < 0)
+            {
+                builder.Append(indent3);
+                builder.Append(info.MethodLiteralPrefix);
+                embed(builder, text);
+                builder.AppendLine(");");
+                break;
+            }
+            else
+            {
+                builder.Append(indent3);
+                builder.Append(info.MethodLiteralPrefix);
+                embed(builder, text.Slice(0, codeIndex));
+                text = text.Slice(codeIndex);
+                builder.AppendLine(");");
+            }
+        }
+    }
+
+    private static void AppendGenerate(this StringBuilder builder, T4Info info, ReadOnlySpan<char> text, string indentParameterName, Embed embed, CancellationToken token)
     {
         bool shouldIndent = true;
         void PreIndent()
@@ -237,137 +274,97 @@ public static partial class Utility
             }
         }
 
-        token.ThrowIfCancellationRequested();
+        ReadOnlySpan<char> SliceLine(ref ReadOnlySpan<char> text, int length)
+        {
+            var answer = text.Slice(0, length);
+            text = text.Slice(length);
+            if (text[0] == '\r' && text.Length > 1 && text[1] == '\n')
+            {
+                shouldIndent = true;
+                text = text.Slice(2);
+            }
+            else if (text[0] == '\n')
+            {
+                shouldIndent = true;
+                text = text.Slice(1);
+            }
+
+            return answer;
+        }
+
+        void ProcessCode(ref ReadOnlySpan<char> text)
+        {
+            if (text.Length > 2 && text[2] == '=')
+            {
+                PreIndent();
+                text = builder.AppendValue(info, text.Slice(3).TrimStart(), token);
+            }
+            else
+            {
+                bool _ = false;
+                text = builder.AppendCode(text.Slice(2), ref _, token);
+            }
+        }
+
         while (!text.IsEmpty)
         {
-            if (text[0] == '<' && 1 < text.Length && text[1] == '#')
+            token.ThrowIfCancellationRequested();
+            var codeIndex = text.IndexOf("<#".AsSpan(), StringComparison.Ordinal);
+            var crlfIndex = text.IndexOfAny('\r', '\n');
+            if (codeIndex == 0)
             {
-                if (2 < text.Length && text[2] == '=')
-                {
-                    if (indentParameterName is not null)
-                    {
-                        PreIndent();
-                    }
-
-                    text = builder.AppendValue(info, text.Slice(3).TrimStart(), token);
-                }
-                else
-                {
-                    text = builder.AppendCode(text.Slice(2), ref shouldIndent, token);
-                }
-
+                ProcessCode(ref text);
                 continue;
             }
 
-            var index = text.IndexOf("<#".AsSpan(), StringComparison.Ordinal);
-            Debug.Assert(index != 0);
-            if (indentParameterName is null)
+            if (crlfIndex == 0)
             {
+                SliceLine(ref text, 0);
                 builder.Append(indent3);
-                builder.Append(info.MethodLiteralPrefix);
-
-                if (index < 0)
-                {
-                    embed(builder, text);
-                    text = ReadOnlySpan<char>.Empty;
-                }
-                else
-                {
-                    embed(builder, text.Slice(0, index));
-                    text = text.Slice(index);
-                }
-
-                builder.AppendLine(");");
-                shouldIndent = false;
+                builder.AppendLine(info.MethodCrLf);
                 continue;
             }
 
-            var anotherIndex = text.IndexOfAny('\r', '\n');
-            if (anotherIndex == -1)
+            if (codeIndex == -1)
             {
                 PreIndent();
                 builder.Append(indent3);
                 builder.Append(info.MethodLiteralPrefix);
-                if (index > 0)
-                {
-                    embed(builder, text.Slice(0, index));
-                    text = text.Slice(index);
-                }
-                else
+                if (crlfIndex == -1)
                 {
                     embed(builder, text);
-                    text = ReadOnlySpan<char>.Empty;
-                }
-
-                builder.AppendLine(");");
-                continue;
-            }
-
-            if (anotherIndex < index)
-            {
-                if (text[anotherIndex] == '\r' && anotherIndex + 1 < text.Length && text[anotherIndex + 1] == '\n')
-                {
-                    if (anotherIndex != 0)
-                    {
-                        PreIndent();
-                        builder.Append(indent3);
-                        builder.Append(info.MethodLiteralPrefix);
-                        embed(builder, text.Slice(0, anotherIndex));
-                        builder.AppendLine(");");
-                    }
-
-                    builder.Append(indent3);
-                    builder.AppendLine(info.MethodCrLf);
-                    text = text.Slice(anotherIndex + 2);
-                    shouldIndent = true;
-                }
-                else if (text[anotherIndex] == '\n')
-                {
-                    if (anotherIndex != 0)
-                    {
-                        PreIndent();
-                        builder.Append(indent3);
-                        builder.Append(info.MethodLiteralPrefix);
-                        embed(builder, text.Slice(0, anotherIndex));
-                        builder.AppendLine(");");
-                    }
-
-                    builder.Append(indent3);
-                    builder.AppendLine(info.MethodCrLf);
-                    text = text.Slice(anotherIndex + 1);
-                    shouldIndent = true;
-                }
-                continue;
-            }
-
-            PreIndent();
-            builder.Append(indent3);
-            builder.Append(info.MethodLiteralPrefix);
-
-            if (index == -1)
-            {
-                embed(builder, text.Slice(0, anotherIndex));
-                builder.AppendLine(");");
-                builder.Append(indent3);
-                builder.AppendLine(info.MethodCrLf);
-
-                text = text.Slice(anotherIndex);
-                shouldIndent = true;
-                if (text[0] == '\r' && text.Length >= 2 && text[1] == '\n')
-                {
-                    text = text.Slice(2);
+                    builder.AppendLine(");");
+                    break;
                 }
                 else
                 {
-                    text = text.Slice(1);
+                    var line = SliceLine(ref text, crlfIndex);
+                    embed(builder, line);
+                    builder.AppendLine(");");
+                    builder.Append(indent3);
+                    builder.AppendLine(info.MethodCrLf);
                 }
             }
             else
             {
-                embed(builder, text.Slice(0, index));
-                builder.AppendLine(");");
-                text = text.Slice(index);
-                shouldIndent = false;
+                PreIndent();
+                builder.Append(indent3);
+                builder.Append(info.MethodLiteralPrefix);
+                if (crlfIndex > 0 && crlfIndex < codeIndex)
+                {
+                    var line = SliceLine(ref text, crlfIndex);
+                    embed(builder, line);
+                    builder.AppendLine(");");
+                    builder.Append(indent3);
+                    builder.AppendLine(info.MethodCrLf);
+                }
+                else
+                {
+                    embed(builder, text.Slice(0, codeIndex));
+                    builder.AppendLine(");");
+                    text = text.Slice(codeIndex);
+                    ProcessCode(ref text);
+                }
             }
         }
     }
