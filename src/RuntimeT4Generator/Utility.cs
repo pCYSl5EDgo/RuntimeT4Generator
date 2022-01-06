@@ -3,7 +3,7 @@ using System.Text;
 
 namespace RuntimeT4Generator;
 
-public static class Utility
+public static partial class Utility
 {
     private const string indent3 = "            ";
 
@@ -48,7 +48,7 @@ public static class Utility
     private static bool GeneratePre(StringBuilder builder, T4Info info, out ReadOnlySpan<char> span, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var text = info.Text.GetText(token)?.ToString();
+        var text = info.SourceText;
         if (text is null)
         {
             span = default;

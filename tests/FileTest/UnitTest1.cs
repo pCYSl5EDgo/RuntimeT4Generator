@@ -3,6 +3,11 @@ using Xunit;
 
 namespace FileTest;
 
+[RuntimeT4Generator.T4(isIndent: true)]
+partial struct EmbedTemplate
+{
+}
+
 public class UnitTest1
 {
     [Fact]

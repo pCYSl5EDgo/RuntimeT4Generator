@@ -37,3 +37,13 @@ This source generator support the 3 types.
 |System.StringBuilder|"StringBuilder" or ""|
 |ref Cysharp.Text.Utf16ValueStringBuilder|"Utf16"|
 |ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler|"DefaultInterpolatedStringHandler"|
+
+## T4Attribute has come since version 0.3.10
+
+```csharp
+[RuntimeT4Generator.T4(kind:RuntimeT4Generator.Kind.Utf8)]
+partial struct BigTemplate
+{}
+```
+
+RuntimeT4Generator will search BigTemplate.tt under the project directory.

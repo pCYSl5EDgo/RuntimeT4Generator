@@ -116,7 +116,7 @@ public partial class T4Info
         };
     }
 
-    private T4Info(string runtimeT4Generator, AdditionalText text, string @namespace, string modifier, string parameterType, string? indentParameterName, string parameterName, string typeName, string methodPrefix, string methodLiteralPrefix, string methodCrLf)
+    public T4Info(string runtimeT4Generator, AdditionalText text, string @namespace, string modifier, string parameterType, string? indentParameterName, string parameterName, string typeName, string methodPrefix, string methodLiteralPrefix, string methodCrLf)
     {
         RuntimeT4Generator = runtimeT4Generator;
         Namespace = @namespace;
@@ -128,6 +128,23 @@ public partial class T4Info
         MethodLiteralPrefix = methodLiteralPrefix;
         MethodCrLf = methodCrLf;
         Text = text;
+        SourceText = text.GetText()?.ToString();
+        RuntimeT4Generator_IndentParameterName = indentParameterName;
+    }
+
+    public T4Info(string runtimeT4Generator, string text, string @namespace, string modifier, string parameterType, string? indentParameterName, string parameterName, string typeName, string methodPrefix, string methodLiteralPrefix, string methodCrLf)
+    {
+        RuntimeT4Generator = runtimeT4Generator;
+        Namespace = @namespace;
+        Modifier = modifier;
+        TypeName = typeName;
+        ParameterType = parameterType;
+        ParameterName = parameterName;
+        MethodPrefix = methodPrefix;
+        MethodLiteralPrefix = methodLiteralPrefix;
+        MethodCrLf = methodCrLf;
+        Text = null!;
+        SourceText = text;
         RuntimeT4Generator_IndentParameterName = indentParameterName;
     }
 
@@ -139,10 +156,11 @@ public partial class T4Info
     public string MethodPrefix;
     public string MethodLiteralPrefix;
     public string MethodCrLf;
+    public string? SourceText;
 
     public sealed class Comparer : IEqualityComparer<T4Info>
     {
-        public bool Equals(T4Info x, T4Info y) => x.RuntimeT4Generator == y.RuntimeT4Generator && x.Modifier == y.Modifier && x.TypeName == y.TypeName && x.ParameterName == y.ParameterName;
+        public bool Equals(T4Info x, T4Info y) => x.RuntimeT4Generator == y.RuntimeT4Generator && x.Modifier == y.Modifier && x.TypeName == y.TypeName && x.ParameterName == y.ParameterName && x.SourceText == y.SourceText;
 
         public int GetHashCode(T4Info obj) => obj.RuntimeT4Generator?.GetHashCode() ?? 0;
 
