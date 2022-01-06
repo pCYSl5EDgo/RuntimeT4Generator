@@ -33,7 +33,7 @@ public partial class T4Info
 
         if (string.IsNullOrWhiteSpace(value.RuntimeT4Generator_Modifier))
         {
-            value.Modifier = "public partial class";
+            value.Modifier = "partial class";
         }
         else
         {

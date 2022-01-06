@@ -20,6 +20,8 @@ dotnet add package RuntimeT4Generator
     <AdditionalFiles Include="B.tt" RuntimeT4Generator_TypeName="YourOwnClassName" />
     <!-- Default Parameter Name is builder -->
     <AdditionalFiles Include="D.tt" RuntimeT4Generator_ParameterName="buffer" />
+    <!-- Default Modifier is partial class -->
+    <AdditionalFiles Include="D.tt" RuntimeT4Generator_Modifier="partial struct" />
     <!-- Default -->
     <AdditionalFiles Include="E.tt" RuntimeT4Generator="" />
     <!-- Multiple -->
