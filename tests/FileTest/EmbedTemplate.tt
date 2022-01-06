@@ -1,0 +1,11 @@
+new byte[][]
+{
+<#for (int i = 0; i < 16; ++i) {#>
+	new byte[]
+	{
+<#    for (int j = 0; j < 16; ++j) {#>
+		0x<#= i.ToString("X1") #><#= j.ToString("X1") #>,
+<#    }#>
+	},
+<#}#>
+};

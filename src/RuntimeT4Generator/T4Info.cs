@@ -59,8 +59,6 @@ public partial class T4Info
         }
 
         value.MethodPrefix = value.ParameterName + ".Append(";
-        value.MethodLiteralSuffix = value.MethodSuffix = ");";
-
         switch (value.RuntimeT4Generator)
         {
             case null:
@@ -71,6 +69,8 @@ public partial class T4Info
                 return new[] { value.Clone("Utf16") };
             case "Utf8":
                 return new[] { value.Clone("Utf8") };
+            case "DefaultInterpolatedStringHandler":
+                return new[] { value.Clone("DefaultInterpolatedStringHandler") };
         }
 
         var splits = value.RuntimeT4Generator.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -108,15 +108,15 @@ public partial class T4Info
     {
         return runtimeT4Generator switch
         {
-            "StringBuilder" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "global::System.Text.StringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
-            "Utf16" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::Cysharp.Text.Utf16ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, ParameterName + ".Append(", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
-            "Utf8" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::Cysharp.Text.Utf8ValueStringBuilder", ParameterName, MethodPrefix, MethodSuffix, "CopyTo(ref " + ParameterName + ", ", MethodLiteralSuffix, ParameterName + ".AppendLine();", Text, RuntimeT4Generator_IndentParameterName),
-            "DefaultInterpolatedStringHandler" => new(runtimeT4Generator, Namespace, Modifier, TypeName, "ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", ParameterName, ParameterName + ".AppendFormatted(", ParameterName + ".AppendLiteral(global::System.Environment.NewLine);", ParameterName + ".AppendFormatted(", MethodLiteralSuffix, MethodCrLf, Text, RuntimeT4Generator_IndentParameterName),
+            "StringBuilder" => new(runtimeT4Generator, Text, Namespace, Modifier, "global::System.Text.StringBuilder", RuntimeT4Generator_IndentParameterName, ParameterName, TypeName, MethodPrefix, ParameterName + ".Append(", ParameterName + ".AppendLine();"),
+            "Utf16" => new(runtimeT4Generator, Text, Namespace, Modifier, "ref global::Cysharp.Text.Utf16ValueStringBuilder", RuntimeT4Generator_IndentParameterName, ParameterName, TypeName, MethodPrefix, ParameterName + ".Append(", ParameterName + ".AppendLine();"),
+            "Utf8" => new(runtimeT4Generator, Text, Namespace, Modifier, "ref global::Cysharp.Text.Utf8ValueStringBuilder", RuntimeT4Generator_IndentParameterName, ParameterName, TypeName, MethodPrefix, ParameterName + "AppendLiteral(", ParameterName + ".AppendLine();"),
+            "DefaultInterpolatedStringHandler" => new(runtimeT4Generator, Text, Namespace, Modifier, "ref global::System.Runtime.CompilerServices.DefaultInterpolatedStringHandler", RuntimeT4Generator_IndentParameterName, ParameterName, TypeName, ParameterName + ".AppendFormatted(", ParameterName + ".AppendFormatted(", ParameterName + ".AppendLiteral(global::System.Environment.NewLine);"),
             _ => throw new ArgumentException(runtimeT4Generator),
         };
     }
 
-    private T4Info(string runtimeT4Generator, string @namespace, string modifier, string typeName, string parameterType, string parameterName, string methodPrefix, string methodSuffix, string methodLiteralPrefix, string methodLiteralSuffix, string methodCrLf, AdditionalText text, string? indentParameterName)
+    private T4Info(string runtimeT4Generator, AdditionalText text, string @namespace, string modifier, string parameterType, string? indentParameterName, string parameterName, string typeName, string methodPrefix, string methodLiteralPrefix, string methodCrLf)
     {
         RuntimeT4Generator = runtimeT4Generator;
         Namespace = @namespace;
@@ -125,9 +125,7 @@ public partial class T4Info
         ParameterType = parameterType;
         ParameterName = parameterName;
         MethodPrefix = methodPrefix;
-        MethodSuffix = methodSuffix;
         MethodLiteralPrefix = methodLiteralPrefix;
-        MethodLiteralSuffix = methodLiteralSuffix;
         MethodCrLf = methodCrLf;
         Text = text;
         RuntimeT4Generator_IndentParameterName = indentParameterName;
@@ -139,8 +137,15 @@ public partial class T4Info
     public string ParameterType;
     public string ParameterName;
     public string MethodPrefix;
-    public string MethodSuffix;
     public string MethodLiteralPrefix;
-    public string MethodLiteralSuffix;
     public string MethodCrLf;
+
+    public sealed class Comparer : IEqualityComparer<T4Info>
+    {
+        public bool Equals(T4Info x, T4Info y) => x.RuntimeT4Generator == y.RuntimeT4Generator && x.Modifier == y.Modifier && x.TypeName == y.TypeName && x.ParameterName == y.ParameterName;
+
+        public int GetHashCode(T4Info obj) => obj.RuntimeT4Generator?.GetHashCode() ?? 0;
+
+        public static readonly Comparer Default = new();
+    }
 }

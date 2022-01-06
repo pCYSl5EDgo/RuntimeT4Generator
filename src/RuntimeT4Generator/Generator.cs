@@ -10,7 +10,7 @@ public sealed class Generator : IIncrementalGenerator
             .Combine(context.AnalyzerConfigOptionsProvider)
             .Combine(options)
             .SelectMany(T4Info.Select)
-            .WithComparer(EqualityComparer<T4Info>.Default);
+            .WithComparer(T4Info.Comparer.Default);
 
         context.RegisterSourceOutput(files, static (context, info) =>
         {

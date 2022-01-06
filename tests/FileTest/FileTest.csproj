@@ -26,7 +26,7 @@
 	<Import Project="../../src/RuntimeT4Generator/build/RuntimeT4Generator.props" />
 
 	<ItemGroup>
-		<AdditionalFiles Include="FormatterTemplate.tt" RuntimeT4Generator="StringBuilder" RuntimeT4Generator_IndentParameterName="indent" />
+		<AdditionalFiles Include="EmbedTemplate.tt" RuntimeT4Generator="StringBuilder" RuntimeT4Generator_IndentParameterName="indent" />
 	</ItemGroup>
 
 </Project>
