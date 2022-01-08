@@ -1,0 +1,19 @@
+name: Publish
+on:
+  push:
+    branch:
+      - master
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - uses: rohith/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: src/PartialTypeHelper/PartialTypeHelper.csproj
+          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
