@@ -1,0 +1,12 @@
+<Project>
+	<Target Name="_RuntimeT4GeneratorMultiTargetRoslyn3" Condition="'$(SupportsRoslynComponentVersioning)' != 'true'" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<Analyzer Remove="@(Analyzer)" Condition="$([System.String]::Copy('%(Analyzer.Identity)').IndexOf('RuntimeT4Generator.dll')) &gt;= 0"/>
+		</ItemGroup>
+	</Target>
+	<Target Name="_RuntimeT4GeneratorMultiTargetRoslyn4" Condition="'$(SupportsRoslynComponentVersioning)' == 'true'" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<Analyzer Remove="@(Analyzer)" Condition="$([System.String]::Copy('%(Analyzer.Identity)').IndexOf('RuntimeT4Generator.Roslyn3.dll')) &gt;= 0"/>
+		</ItemGroup>
+	</Target>
+</Project>

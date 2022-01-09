@@ -17,7 +17,7 @@ public sealed class Generator : ISourceGenerator
                 continue;
             }
 
-            var info = AdditionalFilesT4Info.Select((t4Info, rootNamespace, token))
+            var info = AdditionalFilesT4Info.Select((t4Info, rootNamespace), token);
             if (info is null)
             {
                 continue;
