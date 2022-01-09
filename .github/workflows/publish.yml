@@ -15,5 +15,6 @@ jobs:
           dotnet-version: 6.0.x
       - uses: rohith/publish-nuget@v2
         with:
+          VERSION_FILE_PATH: src/Directory.Build.props
           PROJECT_FILE_PATH: src/RuntimeT4Generator/RuntimeT4Generator.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
