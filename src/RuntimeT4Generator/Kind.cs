@@ -11,7 +11,7 @@ public enum Kind
 
 public static class KindExtensions
 {
-    public static string GetType(this Kind kind) => kind switch
+    public static string GetTypeName(this Kind kind) => kind switch
     {
         Kind.StringBuilder => "global::System.Text.StringBuilder",
         Kind.Utf8 => "ref global::Cysharp.Text.Utf8ValueStringBuilder",

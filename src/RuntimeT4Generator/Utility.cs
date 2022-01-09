@@ -7,7 +7,7 @@ public static partial class Utility
         token.ThrowIfCancellationRequested();
         builder.Append(' ', indent);
         builder.Append("public void TransformAppend(");
-        builder.Append(kind.GetType());
+        builder.Append(kind.GetTypeName());
         builder.Append(' ');
         builder.Append(parameterName);
         if (indentParameterName is null)
@@ -286,7 +286,7 @@ public static partial class Utility
         {
             builder.Append(' ', indent);
             builder.Append(parameterName);
-            builder.AppendLine(kind.AppendLiteral());
+            builder.Append(kind.AppendLiteral());
         }
 
         while (!text.IsEmpty)
