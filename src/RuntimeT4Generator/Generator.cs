@@ -75,15 +75,7 @@ public sealed class Generator : IIncrementalGenerator
         info.Postprocess(builder);
 
         var code = builder.ToString();
-        builder.Clear();
-        if (info.Namespace != null)
-        {
-            builder.Append(info.Namespace).Append('.');
-        }
-
-        builder.Append(info.ParameterName);
-        builder.Append(".g.cs");
-        var hintName = builder.ToString();
+        var hintName = info.HintName;
         context.AddSource(hintName, code);
     }
 
@@ -117,12 +109,7 @@ public sealed class Generator : IIncrementalGenerator
         }
 
         var code = builder.ToString();
-        builder.Clear();
-        builder.Append(info.TypeSymbol.ToDisplayString());
-        builder.Append('.');
-        builder.Append(info.ParameterName);
-        builder.Append(".g.cs");
-        var hintName = builder.ToString();
+        var hintName = info.HintName;
         context.AddSource(hintName, code);
     }
 }

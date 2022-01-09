@@ -68,4 +68,6 @@ public sealed record AttributeT4Info(Kind Kind, INamedTypeSymbol TypeSymbol, str
 
         return null;
     }
+
+    public string HintName => TypeSymbol.ToDisplayString() + "." + ParameterName;
 }

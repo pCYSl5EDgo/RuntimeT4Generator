@@ -117,4 +117,19 @@ public sealed record AdditionalFilesT4Info(Kind Kind, string? Namespace, string 
             builder.AppendLine("}");
         }
     }
+
+    public string HintName
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Namespace))
+            {
+                return TypeName;
+            }
+            else
+            {
+                return Namespace + "." + TypeName;
+            }
+        }
+    }
 }

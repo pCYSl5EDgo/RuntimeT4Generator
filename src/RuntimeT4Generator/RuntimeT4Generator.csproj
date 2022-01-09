@@ -1,19 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>library</OutputType>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<IsRoslynComponent>true</IsRoslynComponent>
-		<LangVersion>10</LangVersion>
-		<Version>0.4.0</Version>
-		<Deterministic>true</Deterministic>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<Authors>pCYSl5EDgo</Authors>
-		<Copyright>pCYSl5EDgo</Copyright>
-		<RootNamespace>RuntimeT4Generator</RootNamespace>
-		<RepositoryUrl>https://github.com/pCYSl5EDgo/$(RootNamespace)</RepositoryUrl>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 		<DevelopmentDependency>true</DevelopmentDependency>
 		<IsPackable>true</IsPackable>
 		<PackageId>$(RootNamespace)</PackageId>
@@ -28,16 +14,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" PrivateAssets="all" />
-		<PackageReference Include="PartialTypeHelper" Version="0.0.2" PrivateAssets="all" GeneratePathProperty="true" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="OptionsSourceGenerator" Version="0.1.11">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<AdditionalFiles Include="../$(RootNamespace)/build/$(RootNamespace).props" OptionsSourceGenerator_GlobalName="Options" OptionsSourceGenerator_AdditionalFileName="T4Info" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -49,19 +25,6 @@
 
 		<!-- Package the props file -->
 		<Content Include="build\$(RootNamespace).props" Pack="true" PackagePath="build" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Using Include="System"/>
-		<Using Include="System.Text"/>
-		<Using Include="System.IO"/>
-		<Using Include="System.Collections.Generic"/>
-		<Using Include="System.Threading"/>
-		<Using Include="Microsoft.CodeAnalysis" />
-		<Using Include="Microsoft.CodeAnalysis.CSharp" />
-		<Using Include="Microsoft.CodeAnalysis.CSharp.Syntax" />
-		<Using Include="Microsoft.CodeAnalysis.Diagnostics" />
-		<Using Include="PartialTypeHelper"/>
 	</ItemGroup>
 
 	<Target Name="GetDependencyTargetPaths">
