@@ -64,6 +64,11 @@ public sealed record AdditionalFilesT4Info(Kind Kind, string? Namespace, string 
             return null;
         }
 
+        if (!string.IsNullOrEmpty(info.RuntimeT4Generator_Namespace))
+        {
+            rootNamespace = info.RuntimeT4Generator_Namespace;
+        }
+
         var sourceText = info.Text.GetText(token);
         if (sourceText is null)
         {
@@ -94,28 +99,41 @@ public sealed record AdditionalFilesT4Info(Kind Kind, string? Namespace, string 
             indentParameterName = null;
         }
 
-        return new AdditionalFilesT4Info(kind, info.RuntimeT4Generator_Namespace ?? rootNamespace, modifier!, typeName!, parameterName!, sourceText, indentParameterName);
+        return new AdditionalFilesT4Info(kind, rootNamespace, modifier!, typeName!, parameterName!, sourceText, indentParameterName);
     }
 
     public int Preprocess(StringBuilder builder)
     {
-        if (string.IsNullOrWhiteSpace(Namespace))
+        int indent = 0;
+        if (!string.IsNullOrWhiteSpace(Namespace))
         {
-            return 0;
+            builder.Append("namespace ");
+            builder.AppendLine(Namespace);
+            builder.AppendLine("{");
+            builder.Append("    ");
+            indent = 4;
         }
-        
-        builder.Append("namespace ");
-        builder.AppendLine(Namespace);
+
+        builder.Append(Modifier);
+        builder.Append(' ');
+        builder.AppendLine(TypeName);
+        if (indent > 0)
+        {
+            builder.Append(' ', indent);
+        }
+
         builder.AppendLine("{");
-        return 4;
+        return indent + 4;
     }
 
     public void Postprocess(StringBuilder builder)
     {
         if (!string.IsNullOrWhiteSpace(Namespace))
         {
-            builder.AppendLine("}");
+            builder.AppendLine("    }");
         }
+
+        builder.AppendLine("}");
     }
 
     public string HintName

@@ -1,0 +1,11 @@
+﻿partial <#if (Type.IsValueType) {#><# if (Type.IsRecord) {#>record <#}#>struct<#} else if (Type.IsRecord) {#>record<#} else {#>class<#}#> <#= Type.Name #>
+{
+<#if (Child is not null) {
+    Child.TransformAppend(builder, indent + 4);
+    return;
+}
+
+var method = Method!;
+var content = System.IO.File.ReadAllBytes(Path); #>
+    <#= AccessibilityText #> static partial global::System.ReadOnlySpan<byte> <#= method.Name #>() => new byte[] { <#foreach (var c in content) {#><#= c #>, <#}#>};
+}
