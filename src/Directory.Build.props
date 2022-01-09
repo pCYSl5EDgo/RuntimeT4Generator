@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <IsRoslynComponent>true</IsRoslynComponent>
         <LangVersion>10</LangVersion>
-        <Version>0.3.15</Version>
+        <Version>0.3.16</Version>
         <Deterministic>true</Deterministic>
         <Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -14,7 +14,6 @@
         <RepositoryUrl>https://github.com/pCYSl5EDgo/$(RootNamespace)</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -26,15 +25,12 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="PartialTypeHelper" Version="0.0.2" PrivateAssets="all" GeneratePathProperty="true" />
+		<PackageReference Include="PartialTypeHelper" Version="0.0.3">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<AdditionalFiles Include="../$(RootNamespace)/build/$(RootNamespace).props" OptionsSourceGenerator_GlobalName="Options" OptionsSourceGenerator_AdditionalFileName="T4Info" />
     </ItemGroup>
-
-    <Target Name="GetDependencyTargetPaths">
-    	<ItemGroup>
-			<TargetPathWithTargetPlatformMoniker Include="$(PKGPartialTypeHelper)\lib\netstandard2.0\PartialTypeHelper.dll" IncludeRuntimeDependency="false" />
-		</ItemGroup>
-  	</Target>
 
     <ItemGroup>
         <Using Include="System"/>
