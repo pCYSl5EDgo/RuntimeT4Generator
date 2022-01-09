@@ -10,19 +10,13 @@ public static partial class Utility
         builder.Append(kind.GetTypeName());
         builder.Append(' ');
         builder.Append(parameterName);
-        if (indentParameterName is null)
-        {
-            builder.AppendLine(")");
-            builder.Append(' ', indent);
-            builder.AppendLine("{");
-        }
-        else
+        if (indentParameterName is not null)
         {
             builder.Append(", int ");
             builder.Append(indentParameterName);
-            builder.AppendLine(")");
         }
 
+            builder.AppendLine(")");
         builder.Append(' ', indent);
         builder.AppendLine("{");
 
