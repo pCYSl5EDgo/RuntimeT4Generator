@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <IsRoslynComponent>true</IsRoslynComponent>
         <LangVersion>10</LangVersion>
-        <Version>0.3.16</Version>
+        <Version>0.3.17</Version>
         <Deterministic>true</Deterministic>
         <Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -22,12 +22,12 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="OptionsSourceGenerator" Version="0.1.11">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		    <PrivateAssets>all</PrivateAssets>
+		    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="PartialTypeHelper" Version="0.0.3">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		<PackageReference Include="PartialTypeHelper" Version="0.0.4">
+		    <PrivateAssets>all</PrivateAssets>
+		    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<AdditionalFiles Include="../$(RootNamespace)/build/$(RootNamespace).props" OptionsSourceGenerator_GlobalName="Options" OptionsSourceGenerator_AdditionalFileName="T4Info" />
     </ItemGroup>
