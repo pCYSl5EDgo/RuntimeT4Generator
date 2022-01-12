@@ -9,6 +9,8 @@
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<PackageTags>SourceGenerator</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<!-- <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    	<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath> -->
 	</PropertyGroup>
 
 	<ItemGroup>

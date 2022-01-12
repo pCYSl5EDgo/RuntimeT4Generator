@@ -92,19 +92,19 @@ public sealed class Generator : IIncrementalGenerator
         {
             if ((info.Kind & Kind.StringBuilder) != 0)
             {
-                Utility.Generate(builder, type.Indent + 4, Kind.StringBuilder, info.ParameterName, info.IndentParameterName, text, token);
+                Utility.Generate(builder, type.Indent, Kind.StringBuilder, info.ParameterName, info.IndentParameterName, text, token);
             }
             if ((info.Kind & Kind.Utf8) != 0)
             {
-                Utility.Generate(builder, type.Indent + 4, Kind.Utf8, info.ParameterName, info.IndentParameterName, text, token);
+                Utility.Generate(builder, type.Indent, Kind.Utf8, info.ParameterName, info.IndentParameterName, text, token);
             }
             if ((info.Kind & Kind.Utf16) != 0)
             {
-                Utility.Generate(builder, type.Indent + 4, Kind.Utf16, info.ParameterName, info.IndentParameterName, text, token);
+                Utility.Generate(builder, type.Indent, Kind.Utf16, info.ParameterName, info.IndentParameterName, text, token);
             }
             if ((info.Kind & Kind.DefaultInterpolatedStringHandler) != 0)
             {
-                Utility.Generate(builder, type.Indent + 4, Kind.DefaultInterpolatedStringHandler, info.ParameterName, info.IndentParameterName, text, token);
+                Utility.Generate(builder, type.Indent, Kind.DefaultInterpolatedStringHandler, info.ParameterName, info.IndentParameterName, text, token);
             }
         }
 
